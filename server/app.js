@@ -1,29 +1,63 @@
 const express = require("express");
 const cors = require("cors");
-const bcrypt = require("bcrypt");
 
 const User = require("./models/User");
 const Message = require("./models/message");
 
+const authRoutes = require("./routes/authRoutes");
+const authMiddleware = require("./middleware/middleware");
+
 const app = express();
 
-// Middleware
-app.use(cors());
+
+// =====================================================
+// MIDDLEWARE
+// =====================================================
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  })
+);
+
 app.use(express.json());
 
-// Home route
+
+// =====================================================
+// AUTH ROUTES
+// =====================================================
+
+// POST /api/auth/register
+// POST /api/auth/login
+
+app.use("/api/auth", authRoutes);
+
+
+// =====================================================
+// HOME ROUTE
+// =====================================================
+
 app.get("/", (req, res) => {
   res.json({
     message: "Chat App Backend is running!",
   });
 });
 
-// Get all users
-app.get("/api/users", async (req, res) => {
-  try {
-    const users = await User.find();
 
-    res.json(users);
+// =====================================================
+// GET ALL USERS
+// =====================================================
+
+app.get(
+  "/api/users",
+  authMiddleware,
+  async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+
+    res.status(200).json(users);
+
   } catch (error) {
     console.error("Error fetching users:", error);
 
@@ -33,18 +67,38 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-// Temporary route to create test users
+
+// =====================================================
+// TEMPORARY SEED USERS
+// =====================================================
+
 app.post("/api/users/seed", async (req, res) => {
   try {
     await User.deleteMany();
 
     const users = await User.insertMany([
-      { name: "Pragati", email: "pragati@test.com", password: "test123" },
-      { name: "Rahul", email: "rahul@test.com", password: "test123" },
-      { name: "Aman", email: "aman@test.com", password: "test123" },
+      {
+        name: "Pragati",
+        email: "pragati@test.com",
+        password: "test123",
+      },
+      {
+        name: "Rahul",
+        email: "rahul@test.com",
+        password: "test123",
+      },
+      {
+        name: "Aman",
+        email: "aman@test.com",
+        password: "test123",
+      },
     ]);
 
-    res.status(201).json(users);
+    res.status(201).json({
+      message: "Test users created",
+      users,
+    });
+
   } catch (error) {
     console.error("Error seeding users:", error);
 
@@ -54,133 +108,48 @@ app.post("/api/users/seed", async (req, res) => {
   }
 });
 
-// Register user
-app.post("/api/users/register", async (req, res) => {
+
+// =====================================================
+// SEND MESSAGE
+// =====================================================
+
+app.post(
+  "/api/messages",
+  authMiddleware,
+  async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const {
+      senderId,
+      receiverId,
+      text,
+    } = req.body;
 
-    // Check required fields
-    if (!name || !email || !password) {
+    if (
+      !senderId ||
+      !receiverId ||
+      !text ||
+      !text.trim()
+    ) {
       return res.status(400).json({
-        message: "Name, email and password are required",
-      });
-    }
-
-    // Check if email already exists
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
-      return res.status(409).json({
-        message: "Email already registered",
-      });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
-
-    res.status(201).json({
-      message: "User registered successfully",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
-    });
-  } catch (error) {
-    console.error("Registration error:", error);
-
-    res.status(500).json({
-      message: "Registration failed",
-    });
-  }
-});
-
-// Register user
-app.post("/api/users/register", async (req, res) => {
-  // your existing register code...
-});
-
-
-// Login user
-app.post("/api/users/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // Check required fields
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password are required",
-      });
-    }
-
-    // Find user by email
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(401).json({
-        message: "Invalid email or password",
-      });
-    }
-
-    // Compare password with hashed password
-    const passwordMatch = await bcrypt.compare(
-      password,
-      user.password
-    );
-
-    if (!passwordMatch) {
-      return res.status(401).json({
-        message: "Invalid email or password",
-      });
-    }
-
-    // Login successful
-    res.status(200).json({
-      message: "Login successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-
-    res.status(500).json({
-      message: "Login failed",
-    });
-  }
-});
-
-
-// Send and save message
-app.post("/api/messages", async (req, res) => {
-  try {
-    const { senderId, receiverId, text } = req.body;
-
-    if (!senderId || !receiverId || !text) {
-      return res.status(400).json({
-        message: "senderId, receiverId and text are required",
+        message:
+          "senderId, receiverId and text are required",
       });
     }
 
     const newMessage = await Message.create({
       senderId,
       receiverId,
-      text,
+      text: text.trim(),
     });
+
+    console.log("MESSAGE SAVED TO MONGODB:");
+console.log(newMessage);
 
     res.status(201).json({
       message: "Message sent successfully",
       data: newMessage,
     });
+
   } catch (error) {
     console.error("Message save error:", error);
 
@@ -190,32 +159,54 @@ app.post("/api/messages", async (req, res) => {
   }
 });
 
-// Get conversation between two users
-app.get("/api/messages/:userId/:otherUserId", async (req, res) => {
-  try {
-    const { userId, otherUserId } = req.params;
 
-    const messages = await Message.find({
-      $or: [
-        {
-          senderId: userId,
-          receiverId: otherUserId,
-        },
-        {
-          senderId: otherUserId,
-          receiverId: userId,
-        },
-      ],
-    }).sort({ createdAt: 1 });
+// =====================================================
+// GET CONVERSATION
+// =====================================================
 
-    res.json(messages);
-  } catch (error) {
-    console.error("Error fetching messages:", error);
+app.get(
+  "/api/messages/:userId/:otherUserId",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const {
+        userId,
+        otherUserId,
+      } = req.params;
 
-    res.status(500).json({
-      message: "Failed to fetch messages",
-    });
+      const messages = await Message.find({
+        $or: [
+          {
+            senderId: userId,
+            receiverId: otherUserId,
+          },
+          {
+            senderId: otherUserId,
+            receiverId: userId,
+          },
+        ],
+      }).sort({
+        createdAt: 1,
+      });
+
+      res.status(200).json(messages);
+
+    } catch (error) {
+      console.error(
+        "Error fetching messages:",
+        error
+      );
+
+      res.status(500).json({
+        message: "Failed to fetch messages",
+      });
+    }
   }
-});
+);
+
+
+// =====================================================
+// EXPORT
+// =====================================================
 
 module.exports = app;
