@@ -1,0 +1,563 @@
+/* =========================================
+   REGISTER PAGE
+========================================= */
+
+.register-page {
+  min-height: 100vh;
+  width: 100%;
+
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px 20px;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(99, 102, 241, 0.22),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 90% 90%,
+      rgba(139, 92, 246, 0.18),
+      transparent 35%
+    ),
+    #08090f;
+
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+
+/* =========================================
+   BACKGROUND GLOWS
+========================================= */
+
+.register-glow {
+  position: absolute;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  filter: blur(90px);
+
+  opacity: 0.18;
+}
+
+.register-glow-one {
+  width: 300px;
+  height: 300px;
+
+  top: -140px;
+  left: -100px;
+
+  background: #6366f1;
+}
+
+.register-glow-two {
+  width: 350px;
+  height: 350px;
+
+  right: -150px;
+  bottom: -150px;
+
+  background: #8b5cf6;
+}
+
+
+/* =========================================
+   REGISTER CARD
+========================================= */
+
+.register-card {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  max-width: 470px;
+
+  padding: 42px 42px 36px;
+
+  background: #15151f;
+
+  border: 1px solid #292936;
+
+  border-radius: 24px;
+
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.55),
+    0 0 40px rgba(99, 102, 241, 0.06);
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   LOGO
+========================================= */
+
+.register-logo {
+  width: 72px;
+  height: 72px;
+
+  margin: 0 auto 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+
+  background: linear-gradient(
+    135deg,
+    #8b5cf6,
+    #6366f1
+  );
+
+  box-shadow:
+    0 10px 28px rgba(99, 102, 241, 0.28);
+}
+
+.register-logo span {
+  color: #ffffff;
+
+  font-size: 32px;
+  font-weight: 700;
+}
+
+
+/* =========================================
+   HEADING
+========================================= */
+
+.register-card h1 {
+  margin: 0;
+
+  color: #f5f3ff;
+
+  text-align: center;
+
+  font-size: 28px;
+  font-weight: 700;
+
+  letter-spacing: -0.7px;
+}
+
+
+/* =========================================
+   SUBTITLE
+========================================= */
+
+.register-subtitle {
+  margin: 8px 0 30px;
+
+  color: #8f8fa3;
+
+  text-align: center;
+
+  font-size: 14px;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================
+   FORM
+========================================= */
+
+.register-form {
+  width: 100%;
+}
+
+
+/* =========================================
+   INPUT GROUP
+========================================= */
+
+.register-input-group {
+  width: 100%;
+
+  margin-bottom: 18px;
+}
+
+
+/* =========================================
+   LABEL
+========================================= */
+
+.register-input-group label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #deddea;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+
+/* =========================================
+   INPUT WRAPPER
+========================================= */
+
+.register-input-wrapper {
+  position: relative;
+
+  width: 100%;
+}
+
+
+/* =========================================
+   INPUT ICON
+========================================= */
+
+.input-icon {
+  position: absolute;
+
+  left: 15px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  z-index: 2;
+
+  width: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #8b7cf6;
+
+  font-size: 14px;
+
+  pointer-events: none;
+}
+
+
+/* =========================================
+   INPUT
+========================================= */
+
+.register-input-wrapper input {
+  width: 100%;
+  height: 50px;
+
+  padding: 0 15px 0 45px;
+
+  border: 1px solid #30303e;
+
+  border-radius: 12px;
+
+  outline: none;
+
+  background: #101018;
+
+  color: #f4f2ff;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  box-sizing: border-box;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+/* =========================================
+   PLACEHOLDER
+========================================= */
+
+.register-input-wrapper input::placeholder {
+  color: #626274;
+
+  opacity: 1;
+}
+
+
+/* =========================================
+   INPUT HOVER
+========================================= */
+
+.register-input-wrapper input:hover {
+  border-color: #414154;
+}
+
+
+/* =========================================
+   INPUT FOCUS
+========================================= */
+
+.register-input-wrapper input:focus {
+  border-color: #7c6cf2;
+
+  background: #11111c;
+
+  box-shadow:
+    0 0 0 3px rgba(124, 108, 242, 0.10);
+}
+
+
+/* =========================================
+   ERROR
+========================================= */
+
+.register-error {
+  margin: 4px 0 15px;
+
+  padding: 10px 12px;
+
+  border: 1px solid rgba(239, 68, 68, 0.20);
+
+  border-radius: 10px;
+
+  background: rgba(127, 29, 29, 0.12);
+
+  color: #f87171;
+
+  text-align: center;
+
+  font-size: 12px;
+}
+
+
+/* =========================================
+   REGISTER BUTTON
+========================================= */
+
+.register-button {
+  width: 100%;
+  height: 50px;
+
+  margin-top: 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: linear-gradient(
+    135deg,
+    #8b5cf6,
+    #6366f1
+  );
+
+  color: #ffffff;
+
+  font-family: inherit;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 22px rgba(99, 102, 241, 0.20);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+
+/* Arrow */
+
+.register-button > span {
+  font-size: 17px;
+
+  line-height: 1;
+}
+
+
+/* Hover */
+
+.register-button:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 11px 26px rgba(99, 102, 241, 0.30);
+}
+
+
+/* Active */
+
+.register-button:active {
+  transform: translateY(0);
+}
+
+
+/* Disabled */
+
+.register-button:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  transform: none;
+
+  box-shadow: none;
+}
+
+
+/* =========================================
+   LOGIN AREA
+========================================= */
+
+.register-login {
+  margin-top: 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  font-size: 12px;
+}
+
+
+/* Text */
+
+.register-login > span {
+  color: #858597;
+}
+
+
+/* Login button */
+
+.register-login button {
+  width: auto;
+  height: auto;
+
+  margin: 0;
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: #9b8cff;
+
+  font-family: inherit;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-shadow: none;
+
+  transition: color 0.2s ease;
+}
+
+
+/* Login hover */
+
+.register-login button:hover {
+  color: #b8adff;
+
+  text-decoration: underline;
+
+  transform: none;
+
+  box-shadow: none;
+}
+
+
+/* =========================================
+   BRAND
+========================================= */
+
+.register-brand {
+  position: absolute;
+
+  right: 25px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  color: #777789;
+
+  font-size: 13px;
+}
+
+.register-brand span {
+  color: #8b5cf6;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 900px) {
+
+  .register-brand {
+    display: none;
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  .register-page {
+    padding: 20px;
+  }
+
+  .register-card {
+    max-width: 100%;
+
+    padding: 36px 25px 30px;
+
+    border-radius: 20px;
+  }
+
+  .register-logo {
+    width: 65px;
+    height: 65px;
+
+    border-radius: 18px;
+
+    margin-bottom: 18px;
+  }
+
+  .register-logo span {
+    font-size: 29px;
+  }
+
+  .register-card h1 {
+    font-size: 25px;
+  }
+
+  .register-subtitle {
+    margin-bottom: 25px;
+  }
+
+}

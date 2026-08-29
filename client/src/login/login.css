@@ -1,0 +1,191 @@
+* {
+  box-sizing: border-box;
+}
+
+.login-page {
+  min-height: 100vh;
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 20px;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      #312e81 0%,
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      #581c87 0%,
+      transparent 35%
+    ),
+    #09090f;
+}
+
+.login-card {
+  width: 420px;
+
+  padding: 45px 40px;
+
+  text-align: center;
+
+  background: rgba(24, 24, 38, 0.92);
+
+  border: 1px solid rgba(139, 92, 246, 0.25);
+
+  border-radius: 24px;
+
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(139, 92, 246, 0.08);
+
+  backdrop-filter: blur(15px);
+}
+
+.login-logo {
+  width: 70px;
+  height: 70px;
+
+  margin: 0 auto 20px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border-radius: 20px;
+
+  background: linear-gradient(
+    135deg,
+    #8b5cf6,
+    #6366f1
+  );
+
+  font-size: 34px;
+
+  box-shadow:
+    0 10px 30px rgba(139, 92, 246, 0.3);
+}
+
+.login-card h1 {
+  color: #ffffff;
+
+  font-size: 28px;
+
+  margin-bottom: 10px;
+}
+
+.login-subtitle {
+  color: #9ca3af;
+
+  font-size: 14px;
+
+  margin-bottom: 32px;
+}
+
+.login-form {
+  text-align: left;
+}
+
+.login-input-group {
+  margin-bottom: 22px;
+}
+
+.login-input-group label {
+  display: block;
+
+  color: #e5e7eb;
+
+  font-size: 14px;
+
+  font-weight: 500;
+
+  margin-bottom: 8px;
+}
+
+.login-input-group input {
+  width: 100%;
+
+  padding: 14px 16px;
+
+  border-radius: 12px;
+
+  border: 1px solid #353548;
+
+  background: #11111b;
+
+  color: #ffffff;
+
+  font-size: 15px;
+
+  outline: none;
+
+  transition: 0.2s;
+}
+
+.login-input-group input::placeholder {
+  color: #6b7280;
+}
+
+.login-input-group input:focus {
+  border-color: #8b5cf6;
+
+  box-shadow:
+    0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+
+.login-button {
+  width: 100%;
+
+  padding: 14px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: linear-gradient(
+    135deg,
+    #8b5cf6,
+    #6366f1
+  );
+
+  color: white;
+
+  font-size: 15px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.login-button:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 10px 25px rgba(99, 102, 241, 0.25);
+}
+
+.login-register {
+  margin-top: 25px;
+
+  color: #9ca3af;
+
+  font-size: 14px;
+}
+
+.login-register span {
+  color: #a78bfa;
+
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.login-register span:hover {
+  color: #c4b5fd;
+}
