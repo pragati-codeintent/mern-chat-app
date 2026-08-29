@@ -2,7 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 
-const User = require("./models/user");
+const User = require("./models/User");
+const Message = require("./models/message");
 
 const app = express();
 
@@ -159,6 +160,62 @@ app.post("/api/users/login", async (req, res) => {
 });
 
 
+// Send and save message
+app.post("/api/messages", async (req, res) => {
+  try {
+    const { senderId, receiverId, text } = req.body;
 
+    if (!senderId || !receiverId || !text) {
+      return res.status(400).json({
+        message: "senderId, receiverId and text are required",
+      });
+    }
+
+    const newMessage = await Message.create({
+      senderId,
+      receiverId,
+      text,
+    });
+
+    res.status(201).json({
+      message: "Message sent successfully",
+      data: newMessage,
+    });
+  } catch (error) {
+    console.error("Message save error:", error);
+
+    res.status(500).json({
+      message: "Failed to save message",
+    });
+  }
+});
+
+// Get conversation between two users
+app.get("/api/messages/:userId/:otherUserId", async (req, res) => {
+  try {
+    const { userId, otherUserId } = req.params;
+
+    const messages = await Message.find({
+      $or: [
+        {
+          senderId: userId,
+          receiverId: otherUserId,
+        },
+        {
+          senderId: otherUserId,
+          receiverId: userId,
+        },
+      ],
+    }).sort({ createdAt: 1 });
+
+    res.json(messages);
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+
+    res.status(500).json({
+      message: "Failed to fetch messages",
+    });
+  }
+});
 
 module.exports = app;
