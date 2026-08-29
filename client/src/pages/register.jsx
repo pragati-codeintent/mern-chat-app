@@ -17,12 +17,14 @@ function Register({ onRegister, onLogin }) {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/users/register",
+        "http://localhost:5000/api/auth/register",
         {
           method: "POST",
+
           headers: {
             "Content-Type": "application/json",
           },
+
           body: JSON.stringify({
             name,
             email,
@@ -34,18 +36,26 @@ function Register({ onRegister, onLogin }) {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message || "Registration failed");
+        setError(
+          data.message || "Registration failed"
+        );
         return;
       }
 
       // Registration successful
       alert("Account created successfully!");
 
+      // Go to login page
       onRegister();
 
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error(
+        "Registration error:",
+        error
+      );
+
       setError("Cannot connect to server");
+
     } finally {
       setLoading(false);
     }
@@ -57,6 +67,7 @@ function Register({ onRegister, onLogin }) {
       {/* Background decoration */}
 
       <div className="register-glow register-glow-one"></div>
+
       <div className="register-glow register-glow-two"></div>
 
 
@@ -71,7 +82,9 @@ function Register({ onRegister, onLogin }) {
 
         {/* Heading */}
 
-        <h1>Create your account</h1>
+        <h1>
+          Create your account
+        </h1>
 
         <p className="register-subtitle">
           Join Chatter and start connecting
@@ -89,7 +102,9 @@ function Register({ onRegister, onLogin }) {
 
           <div className="register-input-group">
 
-            <label>Name</label>
+            <label>
+              Name
+            </label>
 
             <div className="register-input-wrapper">
 
@@ -101,7 +116,9 @@ function Register({ onRegister, onLogin }) {
                 type="text"
                 placeholder="Enter your name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) =>
+                  setName(e.target.value)
+                }
                 required
               />
 
@@ -114,7 +131,9 @@ function Register({ onRegister, onLogin }) {
 
           <div className="register-input-group">
 
-            <label>Email</label>
+            <label>
+              Email
+            </label>
 
             <div className="register-input-wrapper">
 
@@ -126,7 +145,9 @@ function Register({ onRegister, onLogin }) {
                 type="email"
                 placeholder="Enter your email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) =>
+                  setEmail(e.target.value)
+                }
                 required
               />
 
@@ -139,7 +160,9 @@ function Register({ onRegister, onLogin }) {
 
           <div className="register-input-group">
 
-            <label>Password</label>
+            <label>
+              Password
+            </label>
 
             <div className="register-input-wrapper">
 
@@ -151,7 +174,9 @@ function Register({ onRegister, onLogin }) {
                 type="password"
                 placeholder="Create a password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) =>
+                  setPassword(e.target.value)
+                }
                 required
               />
 
@@ -176,14 +201,19 @@ function Register({ onRegister, onLogin }) {
             className="register-button"
             disabled={loading}
           >
+
             {loading ? (
               "Creating account..."
             ) : (
               <>
                 Create account
-                <span>→</span>
+
+                <span>
+                  →
+                </span>
               </>
             )}
+
           </button>
 
         </form>
@@ -212,8 +242,13 @@ function Register({ onRegister, onLogin }) {
       {/* Bottom branding */}
 
       <div className="register-brand">
-        <span>✦</span>
+
+        <span>
+          ✦
+        </span>
+
         Chatter
+
       </div>
 
     </div>

@@ -8,6 +8,10 @@ function Login({ onRegister, onLogin }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // =====================================================
+  // LOGIN
+  // =====================================================
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -16,12 +20,14 @@ function Login({ onRegister, onLogin }) {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/users/login",
+        "http://localhost:5000/api/auth/login",
         {
           method: "POST",
+
           headers: {
             "Content-Type": "application/json",
           },
+
           body: JSON.stringify({
             email,
             password,
@@ -31,23 +37,48 @@ function Login({ onRegister, onLogin }) {
 
       const data = await response.json();
 
+      // =================================================
+      // LOGIN FAILED
+      // =================================================
+
       if (!response.ok) {
-        setError(data.message);
+        setError(data.message || "Login failed");
         return;
       }
 
+      // =================================================
+      // SAVE JWT TOKEN
+      // =================================================
+
+      localStorage.setItem("token", data.token);
+
+      console.log("JWT token saved");
+
       console.log("Logged in user:", data.user);
 
-      // Tell App.jsx that login was successful
+      // =================================================
+      // TELL APP.JSX LOGIN WAS SUCCESSFUL
+      // =================================================
+
       onLogin(data.user);
 
     } catch (error) {
+
       console.error("Login error:", error);
+
       setError("Cannot connect to server");
+
     } finally {
+
       setLoading(false);
+
     }
   };
+
+
+  // =====================================================
+  // UI
+  // =====================================================
 
   return (
     <div className="login-page">
@@ -64,6 +95,11 @@ function Login({ onRegister, onLogin }) {
           Login to continue chatting
         </p>
 
+
+        {/* =================================================
+            LOGIN FORM
+        ================================================= */}
+
         <form
           className="login-form"
           onSubmit={handleLogin}
@@ -79,7 +115,9 @@ function Login({ onRegister, onLogin }) {
               type="email"
               placeholder="Enter your email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
               required
             />
 
@@ -96,7 +134,9 @@ function Login({ onRegister, onLogin }) {
               type="password"
               placeholder="Enter your password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
               required
             />
 
@@ -119,15 +159,20 @@ function Login({ onRegister, onLogin }) {
             className="login-button"
             disabled={loading}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading
+              ? "Logging in..."
+              : "Login"}
           </button>
 
         </form>
 
 
-        {/* REGISTER */}
+        {/* =================================================
+            REGISTER
+        ================================================= */}
 
         <p className="login-register">
+
           Don't have an account?
 
           <span onClick={onRegister}>
@@ -142,4 +187,4 @@ function Login({ onRegister, onLogin }) {
   );
 }
 
-export default Login; 
+export default Login;

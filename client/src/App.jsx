@@ -88,17 +88,25 @@ useEffect(() => {
   // =====================================================
   // GET USERS
   // =====================================================
+useEffect(() => {
+  const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    fetch("http://localhost:5000/api/users")
-      .then((response) => response.json())
-      .then((data) => {
-        setUsers(data);
-      })
-      .catch((error) => {
-        console.error("Error fetching users:", error);
-      });
-  }, []);
+  fetch("http://localhost:5000/api/users", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      setUsers(data);
+    })
+    .catch((error) => {
+      console.error(
+        "Error fetching users:",
+        error
+      );
+    });
+}, []);
 
 
   // =====================================================
@@ -272,9 +280,16 @@ newSocket.on("userOffline", (userId) => {
     setMessages([]);
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/messages/${currentUser.id}/${user._id}`
-      );
+      const token = localStorage.getItem("token");
+
+const response = await fetch(
+  `http://localhost:5000/api/messages/${currentUser.id}/${user._id}`,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
 
       const data = await response.json();
 
@@ -335,18 +350,21 @@ newSocket.on("userOffline", (userId) => {
 
     try {
       // SAVE TO MONGODB
-      const response = await fetch(
-        "http://localhost:5000/api/messages",
-        {
-          method: "POST",
+      const token = localStorage.getItem("token");
 
-          headers: {
-            "Content-Type": "application/json",
-          },
+const response = await fetch(
+  "http://localhost:5000/api/messages",
+  {
+    method: "POST",
 
-          body: JSON.stringify(newMessage),
-        }
-      );
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+
+    body: JSON.stringify(newMessage),
+  }
+);
 
       const data = await response.json();
 
