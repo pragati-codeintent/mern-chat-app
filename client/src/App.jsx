@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import "./App.css";
 
@@ -57,10 +57,27 @@ function App() {
 
 function ChatApp({ currentUser, onLogout }) {
   const [users, setUsers] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
 
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+  messagesEndRef.current?.scrollIntoView({
+    behavior: "smooth",
+  });
+};
+
+useEffect(() => {
+  const timer = setTimeout(() => {
+    scrollToBottom();
+  }, 100);
+
+  return () => clearTimeout(timer);
+}, [messages]);
 
   const [darkMode, setDarkMode] = useState(true);
   const [search, setSearch] = useState("");
@@ -85,32 +102,94 @@ function ChatApp({ currentUser, onLogout }) {
 
 
   // =====================================================
-  // SOCKET.IO CONNECTION
-  // =====================================================
+// SOCKET.IO CONNECTION
+// =====================================================
 
-  useEffect(() => {
-    const newSocket = io("http://localhost:5000");
+useEffect(() => {
+  const newSocket = io("http://localhost:5000");
 
-    setSocket(newSocket);
+  setSocket(newSocket);
 
-    newSocket.on("connect", () => {
-      console.log("Socket connected:", newSocket.id);
+  // USER CONNECTED
+  newSocket.on("connect", () => {
+    console.log("Socket connected:", newSocket.id);
 
-      if (currentUser) {
-        newSocket.emit("join", currentUser.id);
+    if (currentUser) {
+      newSocket.emit("join", currentUser.id);
 
-        console.log("Joined room:", currentUser.id);
-      }
+      console.log("Joined room:", currentUser.id);
+    }
+  });
+
+// USER ONLINE
+newSocket.on("userOnline", (userId) => {
+
+  console.log("User online:", userId);
+
+  setOnlineUsers((prev) => {
+
+    if (prev.includes(userId)) {
+      return prev;
+    }
+
+    return [...prev, userId];
+
+  });
+
+});
+
+
+// CURRENT ONLINE USERS
+newSocket.on("onlineUsers", (users) => {
+
+  console.log(
+    "Currently online users:",
+    users
+  );
+
+  setOnlineUsers(users);
+
+});
+
+
+// USER OFFLINE
+newSocket.on("userOffline", (userId) => {
+
+  console.log(
+    "User offline:",
+    userId
+  );
+
+  setOnlineUsers((prev) => {
+
+    return prev.filter(
+      (id) => id !== userId
+    );
+
+  });
+
+});
+
+  // USER OFFLINE
+  newSocket.on("userOffline", (userId) => {
+    console.log("User offline:", userId);
+
+    setOnlineUsers((prev) => {
+      return prev.filter((id) => id !== userId);
     });
+  });
 
-    newSocket.on("disconnect", () => {
-      console.log("Socket disconnected");
-    });
+  // SOCKET DISCONNECTED
+  newSocket.on("disconnect", () => {
+    console.log("Socket disconnected");
+  });
 
-    return () => {
-      newSocket.disconnect();
-    };
-  }, [currentUser]);
+  // CLEANUP
+  return () => {
+    newSocket.disconnect();
+  };
+
+}, [currentUser]);
 
 
   // =====================================================
@@ -495,11 +574,29 @@ function ChatApp({ currentUser, onLogout }) {
 
                   <div className="user-details">
 
-                    <div className="user-name">
-                      {user.name}
-                    </div>
+  <div className="user-name">
+    {user.name}
+  </div>
 
-                  </div>
+  <div className="user-status">
+
+    <span
+      className={`status-dot ${
+        onlineUsers.includes(user._id)
+          ? "online"
+          : "offline"
+      }`}
+    ></span>
+
+    <span>
+      {onlineUsers.includes(user._id)
+        ? "Online"
+        : "Offline"}
+    </span>
+
+  </div>
+
+</div>
 
                 </div>
 
@@ -595,24 +692,47 @@ function ChatApp({ currentUser, onLogout }) {
 
                 <div className="chat-person">
 
-                  <div className="avatar big">
+  <div className="avatar big">
 
-                    {selectedUser.name
-                      .charAt(0)
-                      .toUpperCase()}
+    {selectedUser.name
+      .charAt(0)
+      .toUpperCase()}
 
-                  </div>
+  </div>
 
+  <div className="chat-person-info">
 
-                  <div>
+    <h2>
+      {selectedUser.name}
+    </h2>
 
-                    <h2>
-                      {selectedUser.name}
-                    </h2>
+    <div className="chat-status">
 
-                  </div>
+      <span
+        className={`status-dot ${
+          onlineUsers.includes(selectedUser._id)
+            ? "online"
+            : "offline"
+        }`}
+      ></span>
 
-                </div>
+      <span
+        className={
+          onlineUsers.includes(selectedUser._id)
+            ? "online-text"
+            : "offline-text"
+        }
+      >
+        {onlineUsers.includes(selectedUser._id)
+          ? "Online"
+          : "Offline"}
+      </span>
+
+    </div>
+
+  </div>
+
+</div>
 
               </div>
 
@@ -656,67 +776,51 @@ function ChatApp({ currentUser, onLogout }) {
                   </div>
 
                 ) : (
+<div className="message-list">
 
-                  <div className="message-list">
+  {messages.map((msg) => {
 
-                    {messages.map((msg) => {
+    const isMine =
+      msg.senderId === currentUser.id;
 
-                      const isMine =
-                        msg.senderId ===
-                        currentUser.id;
+    return (
+      <div
+        key={msg.id}
+        className={`message-row ${
+          isMine
+            ? "sent"
+            : "received"
+        }`}
+      >
 
-                      return (
+        <div className="message-avatar">
+          {isMine
+            ? currentUser.name.charAt(0).toUpperCase()
+            : selectedUser.name.charAt(0).toUpperCase()}
+        </div>
 
-                        <div
-                          key={msg.id}
-                          className={`message-row ${
-                            isMine
-                              ? "sent"
-                              : "received"
-                          }`}
-                        >
+        <div className="message-content">
 
-                          <div className="message-avatar">
+          <div className="message-meta">
+            <strong>{msg.sender}</strong>
+            <span>{msg.time}</span>
+          </div>
 
-                            {isMine
-                              ? currentUser.name
-                                  .charAt(0)
-                                  .toUpperCase()
-                              : selectedUser.name
-                                  .charAt(0)
-                                  .toUpperCase()}
+          <div className="bubble">
+            {msg.text}
+          </div>
 
-                          </div>
+        </div>
 
+      </div>
+    );
 
-                          <div className="message-content">
+  })}
 
-                            <div className="message-meta">
+  {/* AUTO SCROLL TARGET */}
+  <div ref={messagesEndRef}></div>
 
-                              <strong>
-                                {msg.sender}
-                              </strong>
-
-                              <span>
-                                {msg.time}
-                              </span>
-
-                            </div>
-
-
-                            <div className="bubble">
-                              {msg.text}
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                      );
-
-                    })}
-
-                  </div>
+</div>
 
                 )}
 

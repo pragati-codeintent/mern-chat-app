@@ -8,10 +8,17 @@ require("dotenv").config();
 
 const PORT = 5000;
 
-// Create HTTP server
+// =====================================================
+// CREATE HTTP SERVER
+// =====================================================
+
 const server = http.createServer(app);
 
-// Create Socket.IO server
+
+// =====================================================
+// CREATE SOCKET.IO SERVER
+// =====================================================
+
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
@@ -19,7 +26,11 @@ const io = new Server(server, {
   },
 });
 
-// MongoDB connection
+
+// =====================================================
+// MONGODB CONNECTION
+// =====================================================
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
@@ -29,41 +40,199 @@ mongoose
     console.error("MongoDB connection failed:", error);
   });
 
-// Socket.IO connection
+
+// =====================================================
+// ONLINE USERS
+// =====================================================
+
+// Store userId -> number of active sockets
+//
+// Example:
+//
+// {
+//   "user123": 1,
+//   "user456": 2
+// }
+//
+// If a user has 2 tabs open,
+// their socket count will be 2.
+
+const onlineUsers = new Map();
+
+
+// =====================================================
+// SOCKET.IO
+// =====================================================
+
 io.on("connection", (socket) => {
+
   console.log("User connected:", socket.id);
 
-  // Join user's room
-  socket.on("join", (userId) => {
-    socket.join(userId);
 
-    console.log(`User ${userId} joined room`);
-  });
+  // ===================================================
+  // USER JOIN
+  // ===================================================
 
-  // Receive and send message
-socket.on("sendMessage", (message) => {
-  console.log("Message received:", message);
+socket.on("join", (userId) => {
 
-  // Send message to receiver
-  io.to(message.receiverId).emit(
-    "receiveMessage",
-    message
+  if (!userId) {
+    return;
+  }
+
+  socket.userId = userId;
+
+  socket.join(userId);
+
+  const currentCount = onlineUsers.get(userId) || 0;
+
+  onlineUsers.set(
+    userId,
+    currentCount + 1
   );
 
-  // Send message to sender
-  io.to(message.senderId).emit(
-    "receiveMessage",
-    message
+  console.log(
+    `User ${userId} joined room`
   );
+
+  console.log(
+    "Online users:",
+    Array.from(onlineUsers.keys())
+  );
+
+  // Tell everyone this user is online
+  if (currentCount === 0) {
+
+    io.emit(
+      "userOnline",
+      userId
+    );
+
+  }
+
+  // IMPORTANT:
+  // Send current online users to this socket
+  socket.emit(
+    "onlineUsers",
+    Array.from(onlineUsers.keys())
+  );
+
 });
 
-  // Disconnect
+
+  // ===================================================
+  // SEND MESSAGE
+  // ===================================================
+
+  socket.on("sendMessage", (message) => {
+
+    console.log(
+      "Message received:",
+      message
+    );
+
+
+    // -----------------------------------------------
+    // SEND TO RECEIVER
+    // -----------------------------------------------
+
+    io.to(message.receiverId).emit(
+      "receiveMessage",
+      message
+    );
+
+
+    // -----------------------------------------------
+    // SEND TO SENDER
+    // -----------------------------------------------
+
+    io.to(message.senderId).emit(
+      "receiveMessage",
+      message
+    );
+
+  });
+
+
+  // ===================================================
+  // DISCONNECT
+  // ===================================================
+
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+
+    console.log(
+      "User disconnected:",
+      socket.id
+    );
+
+
+    if (!socket.userId) {
+      return;
+    }
+
+
+    const userId = socket.userId;
+
+    const currentCount =
+      onlineUsers.get(userId) || 0;
+
+
+    // -----------------------------------------------
+    // DECREASE SOCKET COUNT
+    // -----------------------------------------------
+
+    if (currentCount > 1) {
+
+      onlineUsers.set(
+        userId,
+        currentCount - 1
+      );
+
+      console.log(
+        `User ${userId} still has ${
+          currentCount - 1
+        } connection(s)`
+      );
+
+    } else {
+
+      // ---------------------------------------------
+      // NO CONNECTIONS LEFT
+      // ---------------------------------------------
+
+      onlineUsers.delete(userId);
+
+      console.log(
+        `User ${userId} is offline`
+      );
+
+
+      // Tell everyone user is offline
+      io.emit(
+        "userOffline",
+        userId
+      );
+
+    }
+
+
+    console.log(
+      "Online users:",
+      Array.from(onlineUsers.keys())
+    );
+
   });
+
 });
 
-// Start server
+
+// =====================================================
+// START SERVER
+// =====================================================
+
 server.listen(PORT, () => {
-  console.log(`Backend running on port ${PORT}`);
+
+  console.log(
+    `Backend running on port ${PORT}`
+  );
+
 });

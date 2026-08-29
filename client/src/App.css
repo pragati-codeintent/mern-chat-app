@@ -878,16 +878,14 @@ button {
 .user-status {
   display: flex;
   align-items: center;
+  gap: 7px;
 
-  gap: 5px;
+  margin-top: 5px;
 
-  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 500;
 
-  color: #777080;
-
-  font-size: 9px;
-
-  line-height: 1;
+  letter-spacing: 0.2px;
 }
 
 .user-status span {
@@ -3214,4 +3212,499 @@ button {
 
     scroll-behavior: auto !important;
   }
+}
+/* =========================================
+   ONLINE / OFFLINE STATUS
+========================================= */
+
+.user-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  margin-top: 5px;
+
+  font-size: 12px;
+  line-height: 1;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  display: inline-block;
+
+  flex-shrink: 0;
+}
+
+
+.status-dot.offline {
+  background: #94a3b8;
+
+  box-shadow:
+    0 0 0 3px rgba(148, 163, 184, 0.10);
+}
+
+.user-status:has(.status-dot.offline) {
+  color: #94a3b8;
+}
+
+
+.status-dot.offline {
+  background: #9ca3af;
+}
+
+.user-status:has(.status-dot.online) {
+  color: #22c55e;
+}
+
+/* =====================================================
+   RESPONSIVE DESIGN
+   Desktop → Tablet → Mobile
+===================================================== */
+
+
+/* =====================================================
+   TABLET
+   768px - 1024px
+===================================================== */
+
+@media (max-width: 1024px) {
+
+  .workspace {
+    grid-template-columns: 280px 1fr;
+  }
+
+  .sidebar {
+    width: 280px;
+  }
+
+  .chat-person-info h2 {
+    font-size: 19px;
+  }
+
+  .account strong {
+    font-size: 16px;
+  }
+
+}
+
+
+/* =====================================================
+   MOBILE
+   Below 768px
+===================================================== */
+
+@media (max-width: 767px) {
+
+  /* -----------------------------------------------
+     NAVBAR
+  ----------------------------------------------- */
+
+  .navbar {
+    padding: 12px 16px;
+  }
+
+  .logo-area {
+    gap: 8px;
+  }
+
+  .logo {
+    width: 38px;
+    height: 38px;
+  }
+
+  .logo-area h1 {
+    font-size: 20px;
+  }
+
+  .logo-area p {
+    font-size: 10px;
+  }
+
+  .nav-right {
+    gap: 10px;
+  }
+
+  .account strong {
+    font-size: 15px;
+  }
+
+  .account span {
+    font-size: 10px;
+  }
+
+
+  /* -----------------------------------------------
+     WORKSPACE
+  ----------------------------------------------- */
+
+  .workspace {
+    display: flex;
+    flex-direction: column;
+
+    height: calc(100vh - 64px);
+  }
+
+
+  /* -----------------------------------------------
+     SIDEBAR
+  ----------------------------------------------- */
+
+  .sidebar {
+    width: 100%;
+    height: 45%;
+    min-height: 260px;
+
+    border-right: none;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  }
+
+
+  /* -----------------------------------------------
+     USERS
+  ----------------------------------------------- */
+
+  .users {
+    overflow-y: auto;
+  }
+
+  .user-card {
+    padding: 10px 12px;
+  }
+
+
+  /* -----------------------------------------------
+     CHAT PANEL
+  ----------------------------------------------- */
+
+  .chat-panel {
+    width: 100%;
+    height: 55%;
+
+    min-height: 0;
+  }
+
+
+  /* -----------------------------------------------
+     CHAT HEADER
+  ----------------------------------------------- */
+
+  .chat-top {
+    padding: 12px 16px;
+  }
+
+  .avatar.big {
+    width: 38px;
+    height: 38px;
+
+    font-size: 15px;
+  }
+
+  .chat-person-info h2 {
+    font-size: 17px;
+  }
+
+  .chat-status {
+    font-size: 9px;
+    gap: 4px;
+  }
+
+  .chat-status .online-text,
+  .chat-status .offline-text {
+    font-size: 9px;
+  }
+
+  .chat-status .status-dot {
+    width: 5px;
+    height: 5px;
+  }
+
+
+  /* -----------------------------------------------
+     CHAT BODY
+  ----------------------------------------------- */
+
+  .chat-body {
+    padding: 12px;
+  }
+
+  .message-row {
+    max-width: 90%;
+  }
+
+  .message-content {
+    max-width: calc(100vw - 100px);
+  }
+
+  .bubble {
+    font-size: 14px;
+  }
+
+
+  /* -----------------------------------------------
+     MESSAGE INPUT
+  ----------------------------------------------- */
+
+  .composer {
+    padding: 10px 12px;
+
+    gap: 8px;
+  }
+
+  .input-wrapper input {
+    font-size: 14px;
+  }
+
+  .send {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+}
+
+
+/* =====================================================
+   SMALL MOBILE
+   Below 480px
+===================================================== */
+
+@media (max-width: 480px) {
+
+  /* -----------------------------------------------
+     NAVBAR
+  ----------------------------------------------- */
+
+  .navbar {
+    padding: 10px 12px;
+  }
+
+  .logo-area h1 {
+    font-size: 18px;
+  }
+
+  .logo-area p {
+    display: none;
+  }
+
+  .logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .profile {
+    width: 34px;
+    height: 34px;
+  }
+
+  .account strong {
+    font-size: 14px;
+  }
+
+  .account span {
+    display: none;
+  }
+
+
+  /* -----------------------------------------------
+     SIDEBAR
+  ----------------------------------------------- */
+
+  .sidebar {
+    height: 42%;
+    min-height: 230px;
+  }
+
+  .sidebar-top {
+    padding: 12px;
+  }
+
+  .sidebar-top h2 {
+    font-size: 18px;
+  }
+
+  .search {
+    margin: 0 12px 10px;
+  }
+
+
+  /* -----------------------------------------------
+     CHAT
+  ----------------------------------------------- */
+
+  .chat-panel {
+    height: 58%;
+  }
+
+  .chat-top {
+    padding: 10px 12px;
+  }
+
+  .chat-person-info h2 {
+    font-size: 16px;
+  }
+
+  .avatar.big {
+    width: 36px;
+    height: 36px;
+  }
+
+
+  /* -----------------------------------------------
+     MESSAGES
+  ----------------------------------------------- */
+
+  .message-row {
+    max-width: 95%;
+  }
+
+  .message-avatar {
+    width: 28px;
+    height: 28px;
+
+    font-size: 11px;
+  }
+
+  .message-content {
+    max-width: calc(100vw - 85px);
+  }
+
+  .message-meta {
+    font-size: 10px;
+  }
+
+  .bubble {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+
+
+  /* -----------------------------------------------
+     COMPOSER
+  ----------------------------------------------- */
+
+  .composer {
+    padding: 8px;
+  }
+
+  .input-wrapper input {
+    min-width: 0;
+    font-size: 13px;
+  }
+
+  .send {
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+
+}
+
+
+/* =====================================================
+   VERY SMALL PHONES
+   Below 360px
+===================================================== */
+
+@media (max-width: 360px) {
+
+  .account {
+    display: none;
+  }
+
+  .nav-right {
+    gap: 6px;
+  }
+
+  .sidebar {
+    min-height: 210px;
+  }
+
+  .sidebar-top h2 {
+    font-size: 16px;
+  }
+
+  .chat-person-info h2 {
+    font-size: 15px;
+  }
+
+  .send {
+    padding: 9px 10px;
+  }
+
+}
+
+/* =====================================================
+   CHAT HEADER — USER NAME + ONLINE STATUS
+===================================================== */
+
+.chat-person-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+}
+
+.chat-person-info h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+
+/* Online / Offline text */
+
+.chat-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.chat-status .status-dot {
+  width: 6px;
+  height: 6px;
+}
+
+
+/* Online */
+
+.chat-status .online-text {
+  color: #22c55e;
+  font-size: 10px;
+}
+
+
+/* Offline */
+
+.chat-status .offline-text {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+
+/* =====================================================
+   NAVBAR — LOGGED IN USER
+===================================================== */
+
+.account {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.account strong {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.account span {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.65;
 }
