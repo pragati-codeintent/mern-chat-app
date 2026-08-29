@@ -9,13 +9,13 @@ function App() {
   const [page, setPage] = useState("login");
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Login successful
+  // LOGIN
   const handleLogin = (user) => {
     setCurrentUser(user);
     setPage("chat");
   };
 
-  // Logout
+  // LOGOUT
   const handleLogout = () => {
     setCurrentUser(null);
     setPage("login");
@@ -56,7 +56,6 @@ function App() {
 // =====================================================
 
 function ChatApp({ currentUser, onLogout }) {
-
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
 
@@ -66,12 +65,11 @@ function ChatApp({ currentUser, onLogout }) {
   const [darkMode, setDarkMode] = useState(true);
   const [search, setSearch] = useState("");
 
-  // Socket
   const [socket, setSocket] = useState(null);
 
 
   // =====================================================
-  // GET USERS FROM MONGODB
+  // GET USERS
   // =====================================================
 
   useEffect(() => {
@@ -87,48 +85,31 @@ function ChatApp({ currentUser, onLogout }) {
 
 
   // =====================================================
-  // CONNECT TO SOCKET.IO
+  // SOCKET.IO CONNECTION
   // =====================================================
 
   useEffect(() => {
-
     const newSocket = io("http://localhost:5000");
 
     setSocket(newSocket);
 
-    console.log("Connecting to Socket.IO...");
-
-    // Socket connected
     newSocket.on("connect", () => {
-      console.log(
-        "Socket connected:",
-        newSocket.id
-      );
+      console.log("Socket connected:", newSocket.id);
 
-      // Join current user's room
       if (currentUser) {
-        newSocket.emit(
-          "join",
-          currentUser.id
-        );
+        newSocket.emit("join", currentUser.id);
 
-        console.log(
-          "Joined room:",
-          currentUser.id
-        );
+        console.log("Joined room:", currentUser.id);
       }
     });
 
-    // Socket disconnected
     newSocket.on("disconnect", () => {
       console.log("Socket disconnected");
     });
 
-    // Cleanup
     return () => {
       newSocket.disconnect();
     };
-
   }, [currentUser]);
 
 
@@ -137,105 +118,121 @@ function ChatApp({ currentUser, onLogout }) {
   // =====================================================
 
   useEffect(() => {
+  if (!socket || !selectedUser || !currentUser) return;
 
-    if (!socket) return;
+  const handleReceiveMessage = (newMessage) => {
+    console.log("Live message received:", newMessage);
 
-    const handleReceiveMessage = (newMessage) => {
-
-      console.log(
-        "Live message received:",
-        newMessage
+    const isCurrentConversation =
+      (
+        newMessage.senderId === currentUser.id &&
+        newMessage.receiverId === selectedUser._id
+      ) ||
+      (
+        newMessage.senderId === selectedUser._id &&
+        newMessage.receiverId === currentUser.id
       );
 
-      // Check whether this message belongs
-      // to the currently selected conversation
-      if (
-        selectedUser &&
-        (
-          (
-            newMessage.senderId === currentUser.id &&
-            newMessage.receiverId === selectedUser._id
-          )
-          ||
-          (
-            newMessage.senderId === selectedUser._id &&
-            newMessage.receiverId === currentUser.id
-          )
-        )
-      ) {
+    if (!isCurrentConversation) return;
 
-        setMessages((prev) => [
-          ...prev,
-          newMessage
-        ]);
-      }
+    const formattedMessage = {
+      id: newMessage._id || newMessage.id || Date.now(),
+      text: newMessage.text,
+
+      sender:
+        newMessage.senderId === currentUser.id
+          ? currentUser.name
+          : selectedUser.name,
+
+      senderId: newMessage.senderId,
+      receiverId: newMessage.receiverId,
+
+      time: new Date(
+        newMessage.createdAt || Date.now()
+      ).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
 
-    socket.on(
+    setMessages((prev) => {
+      // Prevent duplicate message
+      const alreadyExists = prev.some(
+        (msg) =>
+          msg.id === formattedMessage.id
+      );
+
+      if (alreadyExists) {
+        return prev;
+      }
+
+      return [...prev, formattedMessage];
+    });
+  };
+
+  socket.on(
+    "receiveMessage",
+    handleReceiveMessage
+  );
+
+  return () => {
+    socket.off(
       "receiveMessage",
       handleReceiveMessage
     );
-
-    // Cleanup listener
-    return () => {
-      socket.off(
-        "receiveMessage",
-        handleReceiveMessage
-      );
-    };
-
-  }, [socket, selectedUser, currentUser]);
+  };
+}, [socket, selectedUser, currentUser]);
 
 
   // =====================================================
   // SELECT USER
   // =====================================================
 
-const selectUser = async (user) => {
-  setSelectedUser(user);
-  setMessages([]);
+  const selectUser = async (user) => {
+    setSelectedUser(user);
+    setMessages([]);
 
-  try {
-    const response = await fetch(
-      `http://localhost:5000/api/messages/${currentUser.id}/${user._id}`
-    );
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/messages/${currentUser.id}/${user._id}`
+      );
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      console.error(data.message);
-      return;
+      if (!response.ok) {
+        console.error(data.message);
+        return;
+      }
+
+      const formattedMessages = data.map((msg) => ({
+        id: msg._id,
+        text: msg.text,
+
+        sender:
+          msg.senderId === currentUser.id
+            ? currentUser.name
+            : user.name,
+
+        senderId: msg.senderId,
+        receiverId: msg.receiverId,
+
+        time: new Date(
+          msg.createdAt
+        ).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      }));
+
+      setMessages(formattedMessages);
+
+    } catch (error) {
+      console.error(
+        "Error loading messages:",
+        error
+      );
     }
-
-    const formattedMessages = data.map((msg) => ({
-      id: msg._id,
-      text: msg.text,
-
-      sender:
-        msg.senderId === currentUser.id
-          ? currentUser.name
-          : user.name,
-
-      senderId: msg.senderId,
-      receiverId: msg.receiverId,
-
-      time: new Date(
-        msg.createdAt
-      ).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    }));
-
-    setMessages(formattedMessages);
-
-  } catch (error) {
-    console.error(
-      "Error loading messages:",
-      error
-    );
-  }
-};
+  };
 
 
   // =====================================================
@@ -243,61 +240,65 @@ const selectUser = async (user) => {
   // =====================================================
 
   const sendMessage = async () => {
-  if (
-    !message.trim() ||
-    !selectedUser ||
-    !socket
-  ) {
-    return;
-  }
-
-  const newMessage = {
-    senderId: currentUser.id,
-    receiverId: selectedUser._id,
-    text: message.trim(),
-  };
-
-  try {
-    // Save message in MongoDB
-    const response = await fetch(
-      "http://localhost:5000/api/messages",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newMessage),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error(data.message);
+    if (
+      !message.trim() ||
+      !selectedUser ||
+      !socket
+    ) {
       return;
     }
 
-    // Send saved message through Socket.IO
-    socket.emit("sendMessage", {
-      ...data.data,
-      sender: currentUser.name,
-      time: new Date(
-        data.data.createdAt
-      ).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    });
+    const newMessage = {
+      senderId: currentUser.id,
+      receiverId: selectedUser._id,
+      text: message.trim(),
+    };
 
-    setMessage("");
+    try {
+      // SAVE TO MONGODB
+      const response = await fetch(
+        "http://localhost:5000/api/messages",
+        {
+          method: "POST",
 
-  } catch (error) {
-    console.error(
-      "Error sending message:",
-      error
-    );
-  }
-};
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify(newMessage),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error(data.message);
+        return;
+      }
+
+      // SEND THROUGH SOCKET
+      socket.emit("sendMessage", {
+        ...data.data,
+
+        sender: currentUser.name,
+
+        time: new Date(
+          data.data.createdAt
+        ).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      });
+
+      setMessage("");
+
+    } catch (error) {
+      console.error(
+        "Error sending message:",
+        error
+      );
+    }
+  };
 
 
   // =====================================================
@@ -305,17 +306,14 @@ const selectUser = async (user) => {
   // =====================================================
 
   const handleKeyDown = (e) => {
-
     if (
       e.key === "Enter" &&
       !e.shiftKey
     ) {
-
       e.preventDefault();
 
       sendMessage();
     }
-
   };
 
 
@@ -341,7 +339,6 @@ const selectUser = async (user) => {
   // =====================================================
 
   return (
-
     <div
       className={`app ${
         darkMode ? "dark" : "light"
@@ -349,7 +346,7 @@ const selectUser = async (user) => {
     >
 
       {/* =================================================
-          TOP NAVBAR
+          NAVBAR
       ================================================= */}
 
       <header className="navbar">
@@ -357,11 +354,11 @@ const selectUser = async (user) => {
         <div className="logo-area">
 
           <div className="logo">
-            <span>✦</span>
+            <span>W</span>
           </div>
 
           <div>
-            <h1>Chatter</h1>
+            <h1>Wink</h1>
 
             <p>
               Connect instantly
@@ -373,15 +370,6 @@ const selectUser = async (user) => {
 
         <div className="nav-right">
 
-          <div className="status">
-
-            <span></span>
-
-            All systems online
-
-          </div>
-
-
           {/* THEME */}
 
           <button
@@ -389,8 +377,8 @@ const selectUser = async (user) => {
             onClick={() =>
               setDarkMode(!darkMode)
             }
+            aria-label="Toggle theme"
           >
-
             <span className="sun">
               ☀
             </span>
@@ -400,18 +388,15 @@ const selectUser = async (user) => {
             </span>
 
             <div className="toggle-circle"></div>
-
           </button>
 
 
           {/* PROFILE */}
 
           <div className="profile">
-
             {currentUser?.name
               ?.charAt(0)
               .toUpperCase() || "U"}
-
           </div>
 
         </div>
@@ -420,7 +405,7 @@ const selectUser = async (user) => {
 
 
       {/* =================================================
-          MAIN WORKSPACE
+          WORKSPACE
       ================================================= */}
 
       <main className="workspace">
@@ -446,10 +431,6 @@ const selectUser = async (user) => {
 
             </div>
 
-            <button className="new-chat">
-              +
-            </button>
-
           </div>
 
 
@@ -468,8 +449,6 @@ const selectUser = async (user) => {
               }
             />
 
-            <kbd>⌘ K</kbd>
-
           </div>
 
 
@@ -481,60 +460,52 @@ const selectUser = async (user) => {
               CONTACTS
             </p>
 
+            {filteredUsers.length === 0 ? (
 
-            {filteredUsers.map((user) => (
+              <p className="no-users">
+                No users found
+              </p>
 
-              <div
-                key={user._id}
+            ) : (
 
-                className={`user-card ${
-                  selectedUser?._id === user._id
-                    ? "selected"
-                    : ""
-                }`}
+              filteredUsers.map((user) => (
 
-                onClick={() =>
-                  selectUser(user)
-                }
-              >
+                <div
+                  key={user._id}
 
-                <div className="avatar">
+                  className={`user-card ${
+                    selectedUser?._id === user._id
+                      ? "selected"
+                      : ""
+                  }`}
 
-                  {user.name
-                    .charAt(0)
-                    .toUpperCase()}
+                  onClick={() =>
+                    selectUser(user)
+                  }
+                >
 
-                  <span className="online"></span>
+                  <div className="avatar">
 
-                </div>
-
-
-                <div className="user-details">
-
-                  <div className="user-name">
-
-                    {user.name}
+                    {user.name
+                      .charAt(0)
+                      .toUpperCase()}
 
                   </div>
 
-                  <div className="user-status">
 
-                    <span></span>
+                  <div className="user-details">
 
-                    Active now
+                    <div className="user-name">
+                      {user.name}
+                    </div>
 
                   </div>
 
                 </div>
 
+              ))
 
-                <div className="arrow">
-                  →
-                </div>
-
-              </div>
-
-            ))}
+            )}
 
           </div>
 
@@ -561,18 +532,17 @@ const selectUser = async (user) => {
               </strong>
 
               <span>
-                My account
+                Logged in
               </span>
 
             </div>
 
 
             <button
-              className="settings"
+              className="logout"
               onClick={onLogout}
-              title="Logout"
             >
-              ↪
+              ⇥
             </button>
 
           </div>
@@ -586,7 +556,6 @@ const selectUser = async (user) => {
 
         <section className="chat-panel">
 
-
           {!selectedUser ? (
 
             /* =================================================
@@ -595,47 +564,28 @@ const selectUser = async (user) => {
 
             <div className="welcome">
 
-              <div className="welcome-orbit">
-
-                <div className="welcome-icon">
-                  ✦
-                </div>
-
+              <div className="welcome-icon">
+                ✦
               </div>
-
 
               <p className="welcome-label">
                 YOUR MESSAGES
               </p>
 
-
               <h2>
                 Start a conversation
               </h2>
 
-
               <p className="welcome-text">
-
                 Choose someone from your contacts
-                and start chatting instantly.
-
+                and start chatting.
               </p>
-
-
-              <div className="welcome-hint">
-
-                <span>←</span>
-
-                Select a contact to begin
-
-              </div>
 
             </div>
 
           ) : (
 
             <>
-
 
               {/* =================================================
                   CHAT HEADER
@@ -651,8 +601,6 @@ const selectUser = async (user) => {
                       .charAt(0)
                       .toUpperCase()}
 
-                    <span className="online"></span>
-
                   </div>
 
 
@@ -662,28 +610,7 @@ const selectUser = async (user) => {
                       {selectedUser.name}
                     </h2>
 
-                    <p>
-
-                      <span></span>
-
-                      Online now
-
-                    </p>
-
                   </div>
-
-                </div>
-
-
-                <div className="chat-actions">
-
-                  <button title="Search">
-                    ⌕
-                  </button>
-
-                  <button title="More">
-                    ⋯
-                  </button>
 
                 </div>
 
@@ -717,20 +644,13 @@ const selectUser = async (user) => {
 
                     </div>
 
-
                     <h3>
-
                       Say hello to{" "}
                       {selectedUser.name}
-
                     </h3>
 
-
                     <p>
-
-                      This is the beginning of your
-                      conversation.
-
+                      Start your conversation.
                     </p>
 
                   </div>
@@ -744,7 +664,6 @@ const selectUser = async (user) => {
                       const isMine =
                         msg.senderId ===
                         currentUser.id;
-
 
                       return (
 
@@ -775,24 +694,18 @@ const selectUser = async (user) => {
                             <div className="message-meta">
 
                               <strong>
-
                                 {msg.sender}
-
                               </strong>
 
                               <span>
-
                                 {msg.time}
-
                               </span>
 
                             </div>
 
 
                             <div className="bubble">
-
                               {msg.text}
-
                             </div>
 
                           </div>
@@ -816,11 +729,6 @@ const selectUser = async (user) => {
 
               <div className="composer">
 
-                <button className="attach">
-                  ＋
-                </button>
-
-
                 <div className="input-wrapper">
 
                   <input
@@ -833,11 +741,6 @@ const selectUser = async (user) => {
                     onKeyDown={handleKeyDown}
                   />
 
-
-                  <button className="emoji">
-                    ☺
-                  </button>
-
                 </div>
 
 
@@ -846,15 +749,7 @@ const selectUser = async (user) => {
                   onClick={sendMessage}
                   disabled={!message.trim()}
                 >
-
-                  <span>
-                    Send
-                  </span>
-
-                  <b>
-                    ↗
-                  </b>
-
+                  Send
                 </button>
 
               </div>
@@ -868,7 +763,6 @@ const selectUser = async (user) => {
       </main>
 
     </div>
-
   );
 }
 
