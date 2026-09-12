@@ -52,9 +52,23 @@ function Login({ onRegister, onLogin }) {
 
       localStorage.setItem("token", data.token);
 
+      // =================================================
+      // SAVE USER ID
+      // =================================================
+
+      localStorage.setItem("userId", data.user.id);
+
       console.log("JWT token saved");
 
-      console.log("Logged in user:", data.user);
+      console.log(
+        "User ID saved:",
+        data.user.id
+      );
+
+      console.log(
+        "Logged in user:",
+        data.user
+      );
 
       // =================================================
       // TELL APP.JSX LOGIN WAS SUCCESSFUL
@@ -64,9 +78,14 @@ function Login({ onRegister, onLogin }) {
 
     } catch (error) {
 
-      console.error("Login error:", error);
+      console.error(
+        "Login error:",
+        error
+      );
 
-      setError("Cannot connect to server");
+      setError(
+        "Cannot connect to server"
+      );
 
     } finally {
 
@@ -89,7 +108,9 @@ function Login({ onRegister, onLogin }) {
           💬
         </div>
 
-        <h1>Welcome Back</h1>
+        <h1>
+          Welcome Back
+        </h1>
 
         <p className="login-subtitle">
           Login to continue chatting
@@ -109,7 +130,9 @@ function Login({ onRegister, onLogin }) {
 
           <div className="login-input-group">
 
-            <label>Email</label>
+            <label>
+              Email
+            </label>
 
             <input
               type="email"
@@ -128,7 +151,9 @@ function Login({ onRegister, onLogin }) {
 
           <div className="login-input-group">
 
-            <label>Password</label>
+            <label>
+              Password
+            </label>
 
             <input
               type="password"

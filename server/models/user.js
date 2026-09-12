@@ -20,12 +20,33 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    username: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+
+    bio: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    profilePicture: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,
   }
 );
 
-const User = mongoose.model("User", userSchema);
+// Prevent OverwriteModelError
+const User =
+  mongoose.models.User ||
+  mongoose.model("User", userSchema);
 
 module.exports = User;

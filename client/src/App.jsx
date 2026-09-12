@@ -1,27 +1,48 @@
 import { useEffect, useState, useRef } from "react";
+import Profile from "./pages/Profile";
 import { io } from "socket.io-client";
 import "./App.css";
 
 import Register from "./pages/register";
 import Login from "./login/login";
 
+
+// =====================================================
+// MAIN APP
+// =====================================================
+
 function App() {
   const [page, setPage] = useState("login");
   const [currentUser, setCurrentUser] = useState(null);
 
+
+  // =====================================================
   // LOGIN
+  // =====================================================
+
   const handleLogin = (user) => {
     setCurrentUser(user);
     setPage("chat");
   };
 
+
+  // =====================================================
   // LOGOUT
+  // =====================================================
+
   const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+
     setCurrentUser(null);
     setPage("login");
   };
 
+
+  // =====================================================
   // REGISTER PAGE
+  // =====================================================
+
   if (page === "register") {
     return (
       <Register
@@ -31,7 +52,11 @@ function App() {
     );
   }
 
+
+  // =====================================================
   // LOGIN PAGE
+  // =====================================================
+
   if (page === "login") {
     return (
       <Login
@@ -41,7 +66,11 @@ function App() {
     );
   }
 
+
+  // =====================================================
   // CHAT PAGE
+  // =====================================================
+
   return (
     <ChatApp
       currentUser={currentUser}
@@ -56,6 +85,7 @@ function App() {
 // =====================================================
 
 function ChatApp({ currentUser, onLogout }) {
+
   const [users, setUsers] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -63,141 +93,196 @@ function ChatApp({ currentUser, onLogout }) {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
 
-  const messagesEndRef = useRef(null);
-
-  const scrollToBottom = () => {
-  messagesEndRef.current?.scrollIntoView({
-    behavior: "smooth",
-  });
-};
-
-useEffect(() => {
-  const timer = setTimeout(() => {
-    scrollToBottom();
-  }, 100);
-
-  return () => clearTimeout(timer);
-}, [messages]);
-
   const [darkMode, setDarkMode] = useState(true);
   const [search, setSearch] = useState("");
 
   const [socket, setSocket] = useState(null);
 
+  // =====================================================
+  // PROFILE
+  // =====================================================
+
+  const [showProfile, setShowProfile] = useState(false);
+
+
+  // =====================================================
+  // MESSAGE AUTO SCROLL
+  // =====================================================
+
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  };
+
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [messages]);
+
 
   // =====================================================
   // GET USERS
   // =====================================================
-useEffect(() => {
-  const token = localStorage.getItem("token");
 
-  fetch("http://localhost:5000/api/users", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      setUsers(data);
-    })
-    .catch((error) => {
-      console.error(
-        "Error fetching users:",
-        error
-      );
-    });
-}, []);
+  useEffect(() => {
+
+    const token = localStorage.getItem("token");
+
+    fetch(
+      "http://localhost:5000/api/users",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+      .then((response) => response.json())
+
+      .then((data) => {
+        setUsers(data);
+      })
+
+      .catch((error) => {
+        console.error(
+          "Error fetching users:",
+          error
+        );
+      });
+
+  }, []);
 
 
   // =====================================================
-// SOCKET.IO CONNECTION
-// =====================================================
+  // SOCKET.IO CONNECTION
+  // =====================================================
 
-useEffect(() => {
-  const newSocket = io("http://localhost:5000");
+  useEffect(() => {
 
-  setSocket(newSocket);
+    const newSocket =
+      io("http://localhost:5000");
 
-  // USER CONNECTED
-  newSocket.on("connect", () => {
-    console.log("Socket connected:", newSocket.id);
-
-    if (currentUser) {
-      newSocket.emit("join", currentUser.id);
-
-      console.log("Joined room:", currentUser.id);
-    }
-  });
-
-// USER ONLINE
-newSocket.on("userOnline", (userId) => {
-
-  console.log("User online:", userId);
-
-  setOnlineUsers((prev) => {
-
-    if (prev.includes(userId)) {
-      return prev;
-    }
-
-    return [...prev, userId];
-
-  });
-
-});
+    setSocket(newSocket);
 
 
-// CURRENT ONLINE USERS
-newSocket.on("onlineUsers", (users) => {
+    // USER CONNECTED
 
-  console.log(
-    "Currently online users:",
-    users
-  );
+    newSocket.on("connect", () => {
 
-  setOnlineUsers(users);
+      console.log(
+        "Socket connected:",
+        newSocket.id
+      );
 
-});
+      if (currentUser) {
+
+        newSocket.emit(
+          "join",
+          currentUser.id
+        );
+
+        console.log(
+          "Joined room:",
+          currentUser.id
+        );
+      }
+    });
 
 
-// USER OFFLINE
-newSocket.on("userOffline", (userId) => {
+    // USER ONLINE
 
-  console.log(
-    "User offline:",
-    userId
-  );
+    newSocket.on(
+      "userOnline",
+      (userId) => {
 
-  setOnlineUsers((prev) => {
+        console.log(
+          "User online:",
+          userId
+        );
 
-    return prev.filter(
-      (id) => id !== userId
+        setOnlineUsers((prev) => {
+
+          if (prev.includes(userId)) {
+            return prev;
+          }
+
+          return [
+            ...prev,
+            userId,
+          ];
+        });
+
+      }
     );
 
-  });
 
-});
+    // CURRENT ONLINE USERS
 
-  // USER OFFLINE
-  newSocket.on("userOffline", (userId) => {
-    console.log("User offline:", userId);
+    newSocket.on(
+      "onlineUsers",
+      (users) => {
 
-    setOnlineUsers((prev) => {
-      return prev.filter((id) => id !== userId);
-    });
-  });
+        console.log(
+          "Currently online users:",
+          users
+        );
 
-  // SOCKET DISCONNECTED
-  newSocket.on("disconnect", () => {
-    console.log("Socket disconnected");
-  });
+        setOnlineUsers(users);
 
-  // CLEANUP
-  return () => {
-    newSocket.disconnect();
-  };
+      }
+    );
 
-}, [currentUser]);
+
+    // USER OFFLINE
+
+    newSocket.on(
+      "userOffline",
+      (userId) => {
+
+        console.log(
+          "User offline:",
+          userId
+        );
+
+        setOnlineUsers((prev) => {
+
+          return prev.filter(
+            (id) => id !== userId
+          );
+
+        });
+
+      }
+    );
+
+
+    // SOCKET DISCONNECTED
+
+    newSocket.on(
+      "disconnect",
+      () => {
+
+        console.log(
+          "Socket disconnected"
+        );
+
+      }
+    );
+
+
+    // CLEANUP
+
+    return () => {
+      newSocket.disconnect();
+    };
+
+  }, [currentUser]);
 
 
   // =====================================================
@@ -205,70 +290,128 @@ newSocket.on("userOffline", (userId) => {
   // =====================================================
 
   useEffect(() => {
-  if (!socket || !selectedUser || !currentUser) return;
 
-  const handleReceiveMessage = (newMessage) => {
-    console.log("Live message received:", newMessage);
+    if (
+      !socket ||
+      !selectedUser ||
+      !currentUser
+    ) {
+      return;
+    }
 
-    const isCurrentConversation =
-      (
-        newMessage.senderId === currentUser.id &&
-        newMessage.receiverId === selectedUser._id
-      ) ||
-      (
-        newMessage.senderId === selectedUser._id &&
-        newMessage.receiverId === currentUser.id
-      );
 
-    if (!isCurrentConversation) return;
+    const handleReceiveMessage =
+      (newMessage) => {
 
-    const formattedMessage = {
-      id: newMessage._id || newMessage.id || Date.now(),
-      text: newMessage.text,
+        console.log(
+          "Live message received:",
+          newMessage
+        );
 
-      sender:
-        newMessage.senderId === currentUser.id
-          ? currentUser.name
-          : selectedUser.name,
 
-      senderId: newMessage.senderId,
-      receiverId: newMessage.receiverId,
+        const isCurrentConversation =
+          (
+            newMessage.senderId ===
+              currentUser.id &&
+            newMessage.receiverId ===
+              selectedUser._id
+          ) ||
+          (
+            newMessage.senderId ===
+              selectedUser._id &&
+            newMessage.receiverId ===
+              currentUser.id
+          );
 
-      time: new Date(
-        newMessage.createdAt || Date.now()
-      ).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
 
-    setMessages((prev) => {
-      // Prevent duplicate message
-      const alreadyExists = prev.some(
-        (msg) =>
-          msg.id === formattedMessage.id
-      );
+        if (!isCurrentConversation) {
+          return;
+        }
 
-      if (alreadyExists) {
-        return prev;
-      }
 
-      return [...prev, formattedMessage];
-    });
-  };
+        const formattedMessage = {
 
-  socket.on(
-    "receiveMessage",
-    handleReceiveMessage
-  );
+          id:
+            newMessage._id ||
+            newMessage.id ||
+            Date.now(),
 
-  return () => {
-    socket.off(
+          text:
+            newMessage.text,
+
+          sender:
+            newMessage.senderId ===
+            currentUser.id
+              ? currentUser.name
+              : selectedUser.name,
+
+          senderId:
+            newMessage.senderId,
+
+          receiverId:
+            newMessage.receiverId,
+
+          time: new Date(
+            newMessage.createdAt ||
+              Date.now()
+          ).toLocaleTimeString(
+            [],
+            {
+              hour: "2-digit",
+              minute: "2-digit",
+            }
+          ),
+
+        };
+
+
+        setMessages((prev) => {
+
+          // Prevent duplicate message
+
+          const alreadyExists =
+            prev.some(
+              (msg) =>
+                msg.id ===
+                formattedMessage.id
+            );
+
+
+          if (alreadyExists) {
+            return prev;
+          }
+
+
+          return [
+            ...prev,
+            formattedMessage,
+          ];
+
+        });
+
+      };
+
+
+    socket.on(
       "receiveMessage",
       handleReceiveMessage
     );
-  };
-}, [socket, selectedUser, currentUser]);
+
+
+    return () => {
+
+      socket.off(
+        "receiveMessage",
+        handleReceiveMessage
+      );
+
+    };
+
+  }, [
+    socket,
+    selectedUser,
+    currentUser,
+  ]);
 
 
   // =====================================================
@@ -276,56 +419,93 @@ newSocket.on("userOffline", (userId) => {
   // =====================================================
 
   const selectUser = async (user) => {
+
     setSelectedUser(user);
     setMessages([]);
 
+
     try {
-      const token = localStorage.getItem("token");
 
-const response = await fetch(
-  `http://localhost:5000/api/messages/${currentUser.id}/${user._id}`,
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
+      const token =
+        localStorage.getItem(
+          "token"
+        );
 
-      const data = await response.json();
+
+      const response =
+        await fetch(
+          `http://localhost:5000/api/messages/${currentUser.id}/${user._id}`,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
+
+
+      const data =
+        await response.json();
+
 
       if (!response.ok) {
-        console.error(data.message);
+
+        console.error(
+          data.message
+        );
+
         return;
       }
 
-      const formattedMessages = data.map((msg) => ({
-        id: msg._id,
-        text: msg.text,
 
-        sender:
-          msg.senderId === currentUser.id
-            ? currentUser.name
-            : user.name,
+      const formattedMessages =
+        data.map((msg) => ({
 
-        senderId: msg.senderId,
-        receiverId: msg.receiverId,
+          id:
+            msg._id,
 
-        time: new Date(
-          msg.createdAt
-        ).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      }));
+          text:
+            msg.text,
 
-      setMessages(formattedMessages);
+          sender:
+            msg.senderId ===
+            currentUser.id
+              ? currentUser.name
+              : user.name,
+
+          senderId:
+            msg.senderId,
+
+          receiverId:
+            msg.receiverId,
+
+          time: new Date(
+            msg.createdAt
+          ).toLocaleTimeString(
+            [],
+            {
+              hour: "2-digit",
+              minute: "2-digit",
+            }
+          ),
+
+        }));
+
+
+      setMessages(
+        formattedMessages
+      );
+
 
     } catch (error) {
+
       console.error(
         "Error loading messages:",
         error
       );
+
     }
+
   };
 
 
@@ -334,6 +514,7 @@ const response = await fetch(
   // =====================================================
 
   const sendMessage = async () => {
+
     if (
       !message.trim() ||
       !selectedUser ||
@@ -342,59 +523,104 @@ const response = await fetch(
       return;
     }
 
+
     const newMessage = {
-      senderId: currentUser.id,
-      receiverId: selectedUser._id,
-      text: message.trim(),
+
+      senderId:
+        currentUser.id,
+
+      receiverId:
+        selectedUser._id,
+
+      text:
+        message.trim(),
+
     };
 
+
     try {
+
       // SAVE TO MONGODB
-      const token = localStorage.getItem("token");
 
-const response = await fetch(
-  "http://localhost:5000/api/messages",
-  {
-    method: "POST",
+      const token =
+        localStorage.getItem(
+          "token"
+        );
 
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
 
-    body: JSON.stringify(newMessage),
-  }
-);
+      const response =
+        await fetch(
+          "http://localhost:5000/api/messages",
+          {
+            method: "POST",
 
-      const data = await response.json();
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${token}`,
+            },
+
+            body:
+              JSON.stringify(
+                newMessage
+              ),
+          }
+        );
+
+
+      const data =
+        await response.json();
+
 
       if (!response.ok) {
-        console.error(data.message);
+
+        console.error(
+          data.message
+        );
+
         return;
       }
 
+
       // SEND THROUGH SOCKET
-      socket.emit("sendMessage", {
-        ...data.data,
 
-        sender: currentUser.name,
+      socket.emit(
+        "sendMessage",
+        {
 
-        time: new Date(
-          data.data.createdAt
-        ).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      });
+          ...data.data,
+
+          sender:
+            currentUser.name,
+
+          time: new Date(
+            data.data.createdAt
+          ).toLocaleTimeString(
+            [],
+            {
+              hour: "2-digit",
+              minute: "2-digit",
+            }
+          ),
+
+        }
+      );
+
 
       setMessage("");
 
+
     } catch (error) {
+
       console.error(
         "Error sending message:",
         error
       );
+
     }
+
   };
 
 
@@ -403,14 +629,18 @@ const response = await fetch(
   // =====================================================
 
   const handleKeyDown = (e) => {
+
     if (
       e.key === "Enter" &&
       !e.shiftKey
     ) {
+
       e.preventDefault();
 
       sendMessage();
+
     }
+
   };
 
 
@@ -418,17 +648,23 @@ const response = await fetch(
   // SEARCH USERS
   // =====================================================
 
-  const filteredUsers = users
-    .filter(
-      (user) =>
-        user._id !== currentUser.id
-    )
-    .filter(
-      (user) =>
-        user.name
-          .toLowerCase()
-          .includes(search.toLowerCase())
-    );
+  const filteredUsers =
+    users
+
+      .filter(
+        (user) =>
+          user._id !==
+          currentUser.id
+      )
+
+      .filter(
+        (user) =>
+          user.name
+            .toLowerCase()
+            .includes(
+              search.toLowerCase()
+            )
+      );
 
 
   // =====================================================
@@ -436,11 +672,15 @@ const response = await fetch(
   // =====================================================
 
   return (
+
     <div
       className={`app ${
-        darkMode ? "dark" : "light"
+        darkMode
+          ? "dark"
+          : "light"
       }`}
     >
+
 
       {/* =================================================
           NAVBAR
@@ -454,12 +694,17 @@ const response = await fetch(
             <span>W</span>
           </div>
 
+
           <div>
-            <h1>Wink</h1>
+
+            <h1>
+              Wink
+            </h1>
 
             <p>
               Connect instantly
             </p>
+
           </div>
 
         </div>
@@ -472,10 +717,13 @@ const response = await fetch(
           <button
             className="theme-toggle"
             onClick={() =>
-              setDarkMode(!darkMode)
+              setDarkMode(
+                !darkMode
+              )
             }
             aria-label="Toggle theme"
           >
+
             <span className="sun">
               ☀
             </span>
@@ -485,15 +733,27 @@ const response = await fetch(
             </span>
 
             <div className="toggle-circle"></div>
+
           </button>
 
 
           {/* PROFILE */}
 
-          <div className="profile">
+          <div
+            className="profile"
+            onClick={() =>
+              setShowProfile(true)
+            }
+            style={{
+              cursor: "pointer",
+            }}
+          >
+
             {currentUser?.name
               ?.charAt(0)
-              .toUpperCase() || "U"}
+              .toUpperCase() ||
+              "U"}
+
           </div>
 
         </div>
@@ -513,6 +773,7 @@ const response = await fetch(
         ================================================= */}
 
         <aside className="sidebar">
+
 
           <div className="sidebar-top">
 
@@ -535,14 +796,18 @@ const response = await fetch(
 
           <div className="search">
 
-            <span>⌕</span>
+            <span>
+              ⌕
+            </span>
 
             <input
               type="text"
               placeholder="Search conversations"
               value={search}
               onChange={(e) =>
-                setSearch(e.target.value)
+                setSearch(
+                  e.target.value
+                )
               }
             />
 
@@ -557,7 +822,9 @@ const response = await fetch(
               CONTACTS
             </p>
 
-            {filteredUsers.length === 0 ? (
+
+            {filteredUsers.length ===
+            0 ? (
 
               <p className="no-users">
                 No users found
@@ -565,60 +832,74 @@ const response = await fetch(
 
             ) : (
 
-              filteredUsers.map((user) => (
+              filteredUsers.map(
+                (user) => (
 
-                <div
-                  key={user._id}
+                  <div
+                    key={user._id}
 
-                  className={`user-card ${
-                    selectedUser?._id === user._id
-                      ? "selected"
-                      : ""
-                  }`}
+                    className={`user-card ${
+                      selectedUser?._id ===
+                      user._id
+                        ? "selected"
+                        : ""
+                    }`}
 
-                  onClick={() =>
-                    selectUser(user)
-                  }
-                >
+                    onClick={() =>
+                      selectUser(user)
+                    }
+                  >
 
-                  <div className="avatar">
 
-                    {user.name
-                      .charAt(0)
-                      .toUpperCase()}
+                    <div className="avatar">
+
+                      {user.name
+                        .charAt(0)
+                        .toUpperCase()}
+
+                    </div>
+
+
+                    <div className="user-details">
+
+                      <div className="user-name">
+
+                        {user.name}
+
+                      </div>
+
+
+                      <div className="user-status">
+
+                        <span
+                          className={`status-dot ${
+                            onlineUsers.includes(
+                              user._id
+                            )
+                              ? "online"
+                              : "offline"
+                          }`}
+                        ></span>
+
+
+                        <span>
+
+                          {onlineUsers.includes(
+                            user._id
+                          )
+                            ? "Online"
+                            : "Offline"}
+
+                        </span>
+
+                      </div>
+
+                    </div>
 
                   </div>
 
-
-                  <div className="user-details">
-
-  <div className="user-name">
-    {user.name}
-  </div>
-
-  <div className="user-status">
-
-    <span
-      className={`status-dot ${
-        onlineUsers.includes(user._id)
-          ? "online"
-          : "offline"
-      }`}
-    ></span>
-
-    <span>
-      {onlineUsers.includes(user._id)
-        ? "Online"
-        : "Offline"}
-    </span>
-
-  </div>
-
-</div>
-
-                </div>
-
-              ))
+                )
+              )
 
             )}
 
@@ -631,11 +912,24 @@ const response = await fetch(
 
           <div className="sidebar-footer">
 
-            <div className="mini-avatar">
+
+            {/* PROFILE BUTTON */}
+
+            <div
+              className="mini-avatar"
+              onClick={() =>
+                setShowProfile(true)
+              }
+              title="Open Profile"
+              style={{
+                cursor: "pointer",
+              }}
+            >
 
               {currentUser?.name
                 ?.charAt(0)
-                .toUpperCase() || "U"}
+                .toUpperCase() ||
+                "U"}
 
             </div>
 
@@ -643,8 +937,12 @@ const response = await fetch(
             <div className="account">
 
               <strong>
-                {currentUser?.name || "User"}
+
+                {currentUser?.name ||
+                  "User"}
+
               </strong>
+
 
               <span>
                 Logged in
@@ -652,6 +950,8 @@ const response = await fetch(
 
             </div>
 
+
+            {/* LOGOUT */}
 
             <button
               className="logout"
@@ -671,6 +971,7 @@ const response = await fetch(
 
         <section className="chat-panel">
 
+
           {!selectedUser ? (
 
             /* =================================================
@@ -683,13 +984,16 @@ const response = await fetch(
                 ✦
               </div>
 
+
               <p className="welcome-label">
                 YOUR MESSAGES
               </p>
 
+
               <h2>
                 Start a conversation
               </h2>
+
 
               <p className="welcome-text">
                 Choose someone from your contacts
@@ -702,6 +1006,7 @@ const response = await fetch(
 
             <>
 
+
               {/* =================================================
                   CHAT HEADER
               ================================================= */}
@@ -710,47 +1015,59 @@ const response = await fetch(
 
                 <div className="chat-person">
 
-  <div className="avatar big">
 
-    {selectedUser.name
-      .charAt(0)
-      .toUpperCase()}
+                  <div className="avatar big">
 
-  </div>
+                    {selectedUser.name
+                      .charAt(0)
+                      .toUpperCase()}
 
-  <div className="chat-person-info">
+                  </div>
 
-    <h2>
-      {selectedUser.name}
-    </h2>
 
-    <div className="chat-status">
+                  <div className="chat-person-info">
 
-      <span
-        className={`status-dot ${
-          onlineUsers.includes(selectedUser._id)
-            ? "online"
-            : "offline"
-        }`}
-      ></span>
+                    <h2>
+                      {selectedUser.name}
+                    </h2>
 
-      <span
-        className={
-          onlineUsers.includes(selectedUser._id)
-            ? "online-text"
-            : "offline-text"
-        }
-      >
-        {onlineUsers.includes(selectedUser._id)
-          ? "Online"
-          : "Offline"}
-      </span>
 
-    </div>
+                    <div className="chat-status">
 
-  </div>
+                      <span
+                        className={`status-dot ${
+                          onlineUsers.includes(
+                            selectedUser._id
+                          )
+                            ? "online"
+                            : "offline"
+                        }`}
+                      ></span>
 
-</div>
+
+                      <span
+                        className={
+                          onlineUsers.includes(
+                            selectedUser._id
+                          )
+                            ? "online-text"
+                            : "offline-text"
+                        }
+                      >
+
+                        {onlineUsers.includes(
+                          selectedUser._id
+                        )
+                          ? "Online"
+                          : "Offline"}
+
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </div>
 
               </div>
 
@@ -761,6 +1078,7 @@ const response = await fetch(
 
               <div className="chat-body">
 
+
                 <div className="date-divider">
 
                   <span>
@@ -770,7 +1088,8 @@ const response = await fetch(
                 </div>
 
 
-                {messages.length === 0 ? (
+                {messages.length ===
+                0 ? (
 
                   <div className="empty-messages">
 
@@ -782,10 +1101,15 @@ const response = await fetch(
 
                     </div>
 
+
                     <h3>
+
                       Say hello to{" "}
+
                       {selectedUser.name}
+
                     </h3>
+
 
                     <p>
                       Start your conversation.
@@ -794,51 +1118,86 @@ const response = await fetch(
                   </div>
 
                 ) : (
-<div className="message-list">
 
-  {messages.map((msg) => {
+                  <div className="message-list">
 
-    const isMine =
-      msg.senderId === currentUser.id;
 
-    return (
-      <div
-        key={msg.id}
-        className={`message-row ${
-          isMine
-            ? "sent"
-            : "received"
-        }`}
-      >
+                    {messages.map(
+                      (msg) => {
 
-        <div className="message-avatar">
-          {isMine
-            ? currentUser.name.charAt(0).toUpperCase()
-            : selectedUser.name.charAt(0).toUpperCase()}
-        </div>
+                        const isMine =
+                          msg.senderId ===
+                          currentUser.id;
 
-        <div className="message-content">
 
-          <div className="message-meta">
-            <strong>{msg.sender}</strong>
-            <span>{msg.time}</span>
-          </div>
+                        return (
 
-          <div className="bubble">
-            {msg.text}
-          </div>
+                          <div
+                            key={msg.id}
+                            className={`message-row ${
+                              isMine
+                                ? "sent"
+                                : "received"
+                            }`}
+                          >
 
-        </div>
 
-      </div>
-    );
+                            <div className="message-avatar">
 
-  })}
+                              {isMine
+                                ? currentUser.name
+                                    .charAt(0)
+                                    .toUpperCase()
 
-  {/* AUTO SCROLL TARGET */}
-  <div ref={messagesEndRef}></div>
+                                : selectedUser.name
+                                    .charAt(0)
+                                    .toUpperCase()}
 
-</div>
+                            </div>
+
+
+                            <div className="message-content">
+
+
+                              <div className="message-meta">
+
+                                <strong>
+                                  {msg.sender}
+                                </strong>
+
+                                <span>
+                                  {msg.time}
+                                </span>
+
+                              </div>
+
+
+                              <div className="bubble">
+
+                                {msg.text}
+
+                              </div>
+
+
+                            </div>
+
+                          </div>
+
+                        );
+
+                      }
+                    )}
+
+
+                    {/* AUTO SCROLL TARGET */}
+
+                    <div
+                      ref={
+                        messagesEndRef
+                      }
+                    ></div>
+
+                  </div>
 
                 )}
 
@@ -858,9 +1217,13 @@ const response = await fetch(
                     placeholder={`Message ${selectedUser.name}...`}
                     value={message}
                     onChange={(e) =>
-                      setMessage(e.target.value)
+                      setMessage(
+                        e.target.value
+                      )
                     }
-                    onKeyDown={handleKeyDown}
+                    onKeyDown={
+                      handleKeyDown
+                    }
                   />
 
                 </div>
@@ -869,7 +1232,9 @@ const response = await fetch(
                 <button
                   className="send"
                   onClick={sendMessage}
-                  disabled={!message.trim()}
+                  disabled={
+                    !message.trim()
+                  }
                 >
                   Send
                 </button>
@@ -884,8 +1249,51 @@ const response = await fetch(
 
       </main>
 
+
+      {/* =====================================================
+          PROFILE MODAL
+      ===================================================== */}
+
+      {showProfile && (
+
+        <div
+          className="profile-overlay"
+          onClick={() =>
+            setShowProfile(false)
+          }
+        >
+
+          <div
+            className="profile-modal"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          >
+
+            <button
+              className="profile-close"
+              onClick={() =>
+                setShowProfile(false)
+              }
+              aria-label="Close profile"
+            >
+              ×
+            </button>
+
+
+            <Profile onClose={() => setShowProfile(false)} />
+
+          </div>
+
+        </div>
+
+      )}
+
     </div>
   );
 }
 
+
 export default App;
+
+
