@@ -103,7 +103,8 @@ function ChatApp({ currentUser, onLogout }) {
   // =====================================================
 
   const [showProfile, setShowProfile] = useState(false);
-
+const [profileUser, setProfileUser] = useState(null);
+const [selectedMessage, setSelectedMessage] = useState(null);
 
   // =====================================================
   // MESSAGE AUTO SCROLL
@@ -422,6 +423,7 @@ function ChatApp({ currentUser, onLogout }) {
 
     setSelectedUser(user);
     setMessages([]);
+    setSelectedMessage(null);
 
 
     try {
@@ -622,7 +624,57 @@ function ChatApp({ currentUser, onLogout }) {
     }
 
   };
+// =====================================================
+// DELETE MESSAGE
+// =====================================================
 
+const deleteMessage = async (messageId) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(
+      `http://localhost:5000/api/messages/${messageId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error(
+        "Delete failed:",
+        data.message
+      );
+      return;
+    }
+
+    // MongoDB se delete hone ke baad
+    // UI se bhi message remove karo
+    setMessages((prev) =>
+      prev.filter(
+        (msg) => msg.id !== messageId
+      )
+    );
+
+    setSelectedMessage(null);
+
+    console.log(
+      "Message deleted successfully"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Error deleting message:",
+      error
+    );
+
+  }
+};
 
   // =====================================================
   // ENTER KEY
@@ -741,9 +793,10 @@ function ChatApp({ currentUser, onLogout }) {
 
           <div
             className="profile"
-            onClick={() =>
-              setShowProfile(true)
-            }
+            onClick={() => {
+  setProfileUser(currentUser);
+  setShowProfile(true);
+}}
             style={{
               cursor: "pointer",
             }}
@@ -917,9 +970,10 @@ function ChatApp({ currentUser, onLogout }) {
 
             <div
               className="mini-avatar"
-              onClick={() =>
-                setShowProfile(true)
-              }
+              onClick={() => {
+                setProfileUser(currentUser);
+                setShowProfile(true);
+              }}
               title="Open Profile"
               style={{
                 cursor: "pointer",
@@ -1016,14 +1070,20 @@ function ChatApp({ currentUser, onLogout }) {
                 <div className="chat-person">
 
 
-                  <div className="avatar big">
-
-                    {selectedUser.name
-                      .charAt(0)
-                      .toUpperCase()}
-
-                  </div>
-
+                  <div
+  className="avatar big"
+  onClick={() => {
+    setProfileUser(selectedUser);
+    setShowProfile(true);
+  }}
+  style={{
+    cursor: "pointer",
+  }}
+>
+  {selectedUser.name
+    .charAt(0)
+    .toUpperCase()}
+</div>
 
                   <div className="chat-person-info">
 
@@ -1172,12 +1232,36 @@ function ChatApp({ currentUser, onLogout }) {
                               </div>
 
 
-                              <div className="bubble">
+                             <div
+  className="bubble-wrapper"
+  onContextMenu={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedMessage(msg.id);
+  }}
+>
+  <div className="bubble">
+    {msg.text}
+  </div>
 
-                                {msg.text}
-
-                              </div>
-
+  {selectedMessage === msg.id && (
+    <div
+      className="message-menu"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        className="delete-message"
+        onClick={(e) => {
+          e.stopPropagation();
+          deleteMessage(msg.id);
+        }}
+      >
+        Delete
+      </button>
+    </div>
+  )}
+</div> 
 
                             </div>
 
@@ -1281,7 +1365,10 @@ function ChatApp({ currentUser, onLogout }) {
             </button>
 
 
-            <Profile onClose={() => setShowProfile(false)} />
+            <Profile
+  userId={profileUser?._id || profileUser?.id}
+  onClose={() => setShowProfile(false)}
+/>
 
           </div>
 

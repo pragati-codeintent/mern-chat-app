@@ -3814,3 +3814,105 @@ button {
 .online {
   display: none;
 }
+
+/* =====================================================
+   MESSAGE DELETE MENU
+===================================================== */
+
+/* =====================================================
+   MESSAGE BUBBLE
+===================================================== */
+
+.bubble-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+
+/* =====================================================
+   DELETE MENU
+===================================================== */
+
+.message-menu {
+  position: absolute;
+
+  /* Popup message ke UPAR rahega */
+  bottom: calc(100% + 8px);
+  right: 0;
+
+  width: 120px;
+
+  padding: 5px;
+
+  background: #252238;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  border-radius: 10px;
+
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+
+  z-index: 999999;
+
+  pointer-events: auto;
+}
+
+
+/* =====================================================
+   DELETE BUTTON
+===================================================== */
+
+.delete-message {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 100%;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  padding: 0 12px;
+
+  border: 0;
+  outline: 0;
+
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #ff6b6b;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  pointer-events: auto;
+
+  transition: background 0.15s ease;
+}
+
+
+/* ICON */
+
+.delete-message::before {
+  content: "🗑";
+  margin-right: 9px;
+  font-size: 14px;
+}
+
+
+/* HOVER */
+
+.delete-message:hover {
+  background: rgba(255, 75, 75, 0.15);
+}
+
+
+/* CLICK */
+
+.delete-message:active {
+  background: rgba(255, 75, 75, 0.25);
+}

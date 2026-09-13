@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./Profile.css";
 
-function Profile({ onClose, onProfileUpdate }) {
+function Profile({ userId, onClose, onProfileUpdate }) {
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
 
@@ -18,7 +18,6 @@ function Profile({ onClose, onProfileUpdate }) {
 
   const [imageError, setImageError] = useState(false);
 
-  const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
 
   // ==========================================
@@ -53,12 +52,6 @@ function Profile({ onClose, onProfileUpdate }) {
 
         const data = result.user || result;
 
-        console.log("PROFILE DATA:", data);
-        console.log(
-          "PROFILE PICTURE:",
-          data.profilePicture
-        );
-
         setProfile(data);
 
         setName(data.name || "");
@@ -68,11 +61,9 @@ function Profile({ onClose, onProfileUpdate }) {
 
         setImageError(false);
 
-        // Send profile data to App.jsx
         if (typeof onProfileUpdate === "function") {
           onProfileUpdate(data);
         }
-
       } catch (err) {
         console.error("Profile error:", err);
         setError(err.message);
@@ -114,11 +105,6 @@ function Profile({ onClose, onProfileUpdate }) {
         profilePicture: profilePicture.trim(),
       };
 
-      console.log(
-        "SENDING PROFILE DATA:",
-        profileData
-      );
-
       const response = await fetch(
         `http://localhost:5000/api/profile/${userId}`,
         {
@@ -133,38 +119,18 @@ function Profile({ onClose, onProfileUpdate }) {
 
       const result = await response.json();
 
-      console.log(
-        "UPDATE PROFILE RESPONSE:",
-        result
-      );
-
       if (!response.ok) {
         throw new Error(
-          result.message ||
-            "Failed to update profile"
+          result.message || "Failed to update profile"
         );
       }
 
-      const updatedUser =
-        result.user || result;
+      const updatedUser = result.user || result;
 
-      console.log(
-        "UPDATED USER:",
-        updatedUser
-      );
-
-      console.log(
-        "UPDATED PROFILE PICTURE:",
-        updatedUser.profilePicture
-      );
-
-      // Update Profile.jsx
       setProfile(updatedUser);
 
       setName(updatedUser.name || "");
-      setUsername(
-        updatedUser.username || ""
-      );
+      setUsername(updatedUser.username || "");
       setBio(updatedUser.bio || "");
       setProfilePicture(
         updatedUser.profilePicture || ""
@@ -172,29 +138,15 @@ function Profile({ onClose, onProfileUpdate }) {
 
       setImageError(false);
 
-      // ==========================================
-      // IMPORTANT
-      // Send updated profile to App.jsx
-      // ==========================================
-
       if (typeof onProfileUpdate === "function") {
         onProfileUpdate(updatedUser);
       }
 
       setEditing(false);
-
-      setSuccess(
-        "Profile updated successfully"
-      );
-
+      setSuccess("Profile updated successfully");
     } catch (err) {
-      console.error(
-        "Update profile error:",
-        err
-      );
-
+      console.error("Update profile error:", err);
       setError(err.message);
-
     } finally {
       setSaving(false);
     }
@@ -309,13 +261,13 @@ function Profile({ onClose, onProfileUpdate }) {
           ×
         </button>
 
+
         {/* TITLE */}
 
         <h1>Profile</h1>
 
-        {/* =====================================
-            PROFILE PHOTO
-        ===================================== */}
+
+        {/* PROFILE PHOTO */}
 
         <div className="profile-picture-container">
 
@@ -324,11 +276,6 @@ function Profile({ onClose, onProfileUpdate }) {
               src={profilePicture}
               alt="Profile"
               className="profile-picture"
-              onLoad={() => {
-                console.log(
-                  "Profile picture loaded"
-                );
-              }}
               onError={() => {
                 console.error(
                   "Profile picture could not be loaded:",
@@ -348,6 +295,7 @@ function Profile({ onClose, onProfileUpdate }) {
 
         </div>
 
+
         {/* =====================================
             VIEW MODE
         ===================================== */}
@@ -362,10 +310,10 @@ function Profile({ onClose, onProfileUpdate }) {
                 <label>Name</label>
 
                 <p>
-                  {profile?.name ||
-                    "Not set"}
+                  {profile?.name || "Not set"}
                 </p>
               </div>
+
 
               {/* USERNAME */}
 
@@ -379,6 +327,7 @@ function Profile({ onClose, onProfileUpdate }) {
                 </p>
               </div>
 
+
               {/* EMAIL */}
 
               <div className="profile-field">
@@ -389,6 +338,7 @@ function Profile({ onClose, onProfileUpdate }) {
                     "Not available"}
                 </p>
               </div>
+
 
               {/* BIO */}
 
@@ -403,41 +353,46 @@ function Profile({ onClose, onProfileUpdate }) {
 
             </div>
 
+
             {/* EDIT PROFILE */}
 
-            <button
-              type="button"
-              className="edit-profile-button"
-              onClick={() => {
-                setEditing(true);
+            {userId ===
+              localStorage.getItem("userId") && (
+              <button
+                type="button"
+                className="edit-profile-button"
+                onClick={() => {
+                  setEditing(true);
 
-                setError("");
-                setSuccess("");
+                  setError("");
+                  setSuccess("");
 
-                setName(
-                  profile?.name || ""
-                );
+                  setName(
+                    profile?.name || ""
+                  );
 
-                setUsername(
-                  profile?.username || ""
-                );
+                  setUsername(
+                    profile?.username || ""
+                  );
 
-                setBio(
-                  profile?.bio || ""
-                );
+                  setBio(
+                    profile?.bio || ""
+                  );
 
-                setProfilePicture(
-                  profile?.profilePicture ||
-                    ""
-                );
+                  setProfilePicture(
+                    profile?.profilePicture || ""
+                  );
 
-                setImageError(false);
-              }}
-            >
-              Edit Profile
-            </button>
+                  setImageError(false);
+                }}
+              >
+                Edit Profile
+              </button>
+            )}
+
           </>
         )}
+
 
         {/* =====================================
             EDIT MODE
@@ -461,6 +416,7 @@ function Profile({ onClose, onProfileUpdate }) {
               />
             </div>
 
+
             {/* USERNAME */}
 
             <div className="profile-field">
@@ -478,6 +434,7 @@ function Profile({ onClose, onProfileUpdate }) {
               />
             </div>
 
+
             {/* EMAIL */}
 
             <div className="profile-field">
@@ -485,12 +442,11 @@ function Profile({ onClose, onProfileUpdate }) {
 
               <input
                 type="email"
-                value={
-                  profile?.email || ""
-                }
+                value={profile?.email || ""}
                 disabled
               />
             </div>
+
 
             {/* BIO */}
 
@@ -507,12 +463,11 @@ function Profile({ onClose, onProfileUpdate }) {
               />
             </div>
 
-            {/* PROFILE PICTURE URL */}
+
+            {/* PROFILE PICTURE */}
 
             <div className="profile-field">
-              <label>
-                Profile Picture
-              </label>
+              <label>Profile Picture</label>
 
               <input
                 type="url"
@@ -527,6 +482,7 @@ function Profile({ onClose, onProfileUpdate }) {
                 placeholder="https://example.com/photo.jpg"
               />
             </div>
+
 
             {/* BUTTONS */}
 
@@ -543,6 +499,7 @@ function Profile({ onClose, onProfileUpdate }) {
                   : "Save Changes"}
               </button>
 
+
               <button
                 type="button"
                 className="cancel-profile-button"
@@ -557,6 +514,7 @@ function Profile({ onClose, onProfileUpdate }) {
           </div>
         )}
 
+
         {/* ERROR */}
 
         {error && profile && (
@@ -564,6 +522,7 @@ function Profile({ onClose, onProfileUpdate }) {
             {error}
           </p>
         )}
+
 
         {/* SUCCESS */}
 

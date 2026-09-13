@@ -5,6 +5,7 @@ const User = require("./models/user");
 const Message = require("./models/message");
 
 const authRoutes = require("./routes/authRoutes");
+
 const authMiddleware = require("./middleware/middleware");
 
 const app = express();
@@ -29,6 +30,7 @@ app.use(express.json());
 // =====================================================
 
 app.use("/api/auth", authRoutes);
+
 
 
 // =====================================================
@@ -414,3 +416,49 @@ app.get(
 // =====================================================
 
 module.exports = app;
+
+// =====================================================
+// DELETE MESSAGE
+// =====================================================
+
+// DELETE /api/messages/:id
+
+app.delete(
+  "/api/messages/:id",
+  authMiddleware,
+  async (req, res) => {
+    try {
+
+      const { id } = req.params;
+
+      const deletedMessage =
+        await Message.findByIdAndDelete(id);
+
+      if (!deletedMessage) {
+        return res.status(404).json({
+          message: "Message not found",
+        });
+      }
+
+      console.log(
+        "MESSAGE DELETED FROM MONGODB:",
+        id
+      );
+
+      res.status(200).json({
+        message: "Message deleted successfully",
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Error deleting message:",
+        error
+      );
+
+      res.status(500).json({
+        message: "Failed to delete message",
+      });
+    }
+  }
+);
