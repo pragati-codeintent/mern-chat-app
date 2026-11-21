@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import "./Profile.css";
-
+import "./profile.css";
 function Profile({ userId, onClose, onProfileUpdate }) {
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
