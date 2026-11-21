@@ -137,7 +137,7 @@ const [selectedMessage, setSelectedMessage] = useState(null);
     const token = localStorage.getItem("token");
 
     fetch(
-      "http://localhost:5000/api/users",
+      "https://wink-chat-server.onrender.com/api/users",
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -167,7 +167,7 @@ const [selectedMessage, setSelectedMessage] = useState(null);
   useEffect(() => {
 
     const newSocket =
-      io("http://localhost:5000");
+      io("https://wink-chat-server.onrender.com");
 
     setSocket(newSocket);
 
@@ -436,7 +436,7 @@ const [selectedMessage, setSelectedMessage] = useState(null);
 
       const response =
         await fetch(
-          `http://localhost:5000/api/messages/${currentUser.id}/${user._id}`,
+          `https://wink-chat-server.onrender.com/api/messages/${currentUser.id}/${user._id}`,
           {
             headers: {
               Authorization:
@@ -552,7 +552,7 @@ const [selectedMessage, setSelectedMessage] = useState(null);
 
       const response =
         await fetch(
-          "http://localhost:5000/api/messages",
+          "https://wink-chat-server.onrender.com/api/messages",
           {
             method: "POST",
 
@@ -633,7 +633,7 @@ const deleteMessage = async (messageId) => {
     const token = localStorage.getItem("token");
 
     const response = await fetch(
-      `http://localhost:5000/api/messages/${messageId}`,
+      `https://wink-chat-server.onrender.com/api/messages/${messageId}`,
       {
         method: "DELETE",
         headers: {

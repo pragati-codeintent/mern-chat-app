@@ -31,7 +31,7 @@ function Profile({ userId, onClose, onProfileUpdate }) {
         setError("");
 
         const response = await fetch(
-          `http://localhost:5000/api/profile/${userId}`,
+          `https://wink-chat-server.onrender.com/api/profile/${userId}`,
           {
             method: "GET",
             headers: {
@@ -106,7 +106,7 @@ function Profile({ userId, onClose, onProfileUpdate }) {
       };
 
       const response = await fetch(
-        `http://localhost:5000/api/profile/${userId}`,
+        `https://wink-chat-server.onrender.com/api/profile/${userId}`,
         {
           method: "PUT",
           headers: {

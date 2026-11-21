@@ -17,7 +17,7 @@ function Register({ onRegister, onLogin }) {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/register",
+        "https://wink-chat-server.onrender.com/api/auth/register",
         {
           method: "POST",
 
