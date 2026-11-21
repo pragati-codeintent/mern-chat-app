@@ -6,7 +6,7 @@ require("dotenv").config();
 const app = require("./app");
 const Message = require("./models/message");
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 
 // =====================================================
@@ -20,10 +20,16 @@ const server = http.createServer(app);
 // SOCKET.IO
 // =====================================================
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.CLIENT_URL
+].filter(Boolean);
+
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
+    credentials: true
   },
 });
 
@@ -316,11 +322,8 @@ io.on("connection", (socket) => {
 
 server.listen(
   PORT,
+  "0.0.0.0",
   () => {
-
-    console.log(
-      `Backend running on port ${PORT}`
-    );
-
+    console.log(`Backend running on port ${PORT}`);
   }
 );
